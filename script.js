@@ -136,7 +136,7 @@ function onYouTubeIframeAPIReady() {
         playerVars: {
             'autoplay': 0,
             'loop': 1,
-            'playlist': 'dQw4w9WgXcQ', // Same as videoId
+            'playlist': 'sUOzplfB9ps', // Same as videoId
             'controls': 0,
             'showinfo': 0,
             'rel': 0,
