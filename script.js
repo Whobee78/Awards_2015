@@ -20,10 +20,10 @@ let combinedLightIntervals = [];
 
 // Keyboard event listeners for music control
 document.addEventListener('keydown', function (event) {
-    if (event.key === 'p' || event.key === 'P') {
+    if (event.key === '4') {
         if (playerReady && player) {
             player.playVideo();
-            console.log("Playing music...");
+            console.log("Playing main music...");
         }
     }
     if (event.key === 's' || event.key === 'S') {
@@ -32,8 +32,13 @@ document.addEventListener('keydown', function (event) {
             console.log("Music stopped.");
         }
     }
+    if (event.key === '5') {
+        if (player2Ready && player2) {
+            player2.playVideo();
+            console.log("Playing alternate music...");
+        }
+    }
 });
-
 let isGlowActive = false;
 
 document.addEventListener('keydown', function (event) {
@@ -55,8 +60,11 @@ setInterval(autoToggleGlow, 1500);
 // YouTube player code
 let player;
 let playerReady = false;
+let player2;
+let player2Ready = false;
 
 function onYouTubeIframeAPIReady() {
+    // First player (original)
     player = new YT.Player('youtubePlayer', {
         videoId: 'hxpuusU8sTM', // PlayStation awards music
         playerVars: {
@@ -72,7 +80,25 @@ function onYouTubeIframeAPIReady() {
             'onStateChange': onPlayerStateChange
         }
     });
+    
+    // Second player (new video)
+    player2 = new YT.Player('youtubePlayer2', {
+        videoId: 'dQw4w9WgXcQ', // Change this to your desired video ID
+        playerVars: {
+            'autoplay': 0,
+            'loop': 1,
+            'playlist': 'dQw4w9WgXcQ', // Same as videoId
+            'controls': 0,
+            'showinfo': 0,
+            'mute': 0
+        },
+        events: {
+            'onReady': onPlayer2Ready,
+            'onStateChange': onPlayer2StateChange
+        }
+    });
 }
+
 
 // Define the callback functions
 function onPlayerReady(event) {
@@ -88,6 +114,17 @@ function onPlayerStateChange(event) {
     }
 }
 
+function onPlayer2Ready(event) {
+    player2Ready = true;
+    console.log("Second YouTube player is ready. Press '5' to start playing.");
+}
+
+function onPlayer2StateChange(event) {
+    // If video ends, restart it
+    if (event.data === YT.PlayerState.ENDED) {
+        player2.playVideo();
+    }
+}
 // Add keyboard event listener to start playing when 'P' is pressed
 document.addEventListener('keydown', function (event) {
     if (event.key === 'p' || event.key === 'P') {
