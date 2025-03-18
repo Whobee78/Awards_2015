@@ -137,11 +137,11 @@ function onYouTubeIframeAPIReady() {
     player = new YT.Player('youtubePlayer', {
         width: '1',
         height: '1',
-        videoId: 'hxpuusU8sTM', // PlayStation awards music
+        videoId: 'sUOzplfB9p', // PlayStation awards music
         playerVars: {
             'autoplay': 0,
             'loop': 1,
-            'playlist': 'hxpuusU8sTM',
+            'playlist': 'sUOzplfB9p',
             'controls': 0,
             'showinfo': 0,
             'rel': 0,
@@ -158,11 +158,11 @@ function onYouTubeIframeAPIReady() {
     player2 = new YT.Player('youtubePlayer2', {
         width: '1',
         height: '1',
-        videoId: 'sUOzplfB9p', // Change this to your desired video ID
+        videoId: 'hxpuusU8sTM', // Change this to your desired video ID
         playerVars: {
             'autoplay': 0,
             'loop': 1,
-            'playlist': 'sUOzplfB9p',
+            'playlist': 'hxpuusU8sTM',
             'controls': 0,
             'showinfo': 0,
             'rel': 0,
