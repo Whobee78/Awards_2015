@@ -2287,4 +2287,343 @@ function applyDualtoneMode(christmasLights, halloweenLights) {
         evenActive = !evenActive;
     }, 500);
 
+ combinedLightIntervals.push(interval);
+}
+
+// Chaotic mode - random flickering with combined colors
+function applyChaoticMode(christmasLights, halloweenLights) {
+    const allLights = [...christmasLights, ...halloweenLights];
+    
+    // Combined colors from both themes
+    const combinedColors = [
+        '#ff0000', // Red (Christmas)
+        '#00ff00', // Green (Christmas)
+        '#0000ff', // Blue (Christmas)
+        '#ffff00', // Yellow (Christmas)
+        '#ff6600', // Orange (Halloween)
+        '#6600cc', // Purple (Halloween)
+        '#00cc00', // Toxic green (Halloween)
+        '#ffcc00'  // Pumpkin gold (Halloween)
+    ];
+    
+    // Set random colors initially
+    allLights.forEach(light => {
+        const randomColor = combinedColors[Math.floor(Math.random() * combinedColors.length)];
+        light.style.backgroundColor = randomColor;
+        light.style.boxShadow = `0 0 5px ${randomColor}, 0 0 10px ${randomColor}`;
+    });
+    
+    // Random chaotic changes
+    const interval = setInterval(() => {
+        allLights.forEach(light => {
+            // 20% chance to change color
+            if (Math.random() < 0.2) {
+                const newColor = combinedColors[Math.floor(Math.random() * combinedColors.length)];
+                light.style.backgroundColor = newColor;
+                light.style.boxShadow = `0 0 5px ${newColor}, 0 0 10px ${newColor}`;
+            }
+            
+            // 30% chance to change brightness
+            if (Math.random() < 0.3) {
+                light.style.opacity = (0.3 + Math.random() * 0.7).toString();
+            }
+            
+            // 20% chance to change size
+            if (Math.random() < 0.2) {
+                light.style.transform = `scale(${0.8 + Math.random() * 0.4})`;
+            }
+        });
+    }, 100);
+    
     combinedLightIntervals.push(interval);
+}
+
+// Seasonal mode - Christmas and Halloween lights interact to tell a story
+function applySeasonalMode(christmasLights, halloweenLights) {
+    const allLights = [...christmasLights, ...halloweenLights];
+    let step = 0;
+    const totalSteps = 8;
+    
+    const interval = setInterval(() => {
+        switch (step % totalSteps) {
+            case 0: // Halloween starts (only Halloween lights)
+                christmasLights.forEach(light => {
+                    light.style.opacity = '0.1';
+                });
+                halloweenLights.forEach(light => {
+                    light.style.opacity = '1';
+                    light.style.transform = 'scale(1.2)';
+                });
+                break;
+            case 1: // Halloween fades
+                halloweenLights.forEach(light => {
+                    light.style.opacity = '0.5';
+                    light.style.transform = 'scale(1)';
+                });
+                break;
+            case 2: // Transition - all lights dim
+                allLights.forEach(light => {
+                    light.style.opacity = '0.3';
+                    light.style.transform = 'scale(0.8)';
+                });
+                break;
+            case 3: // Christmas starts to appear
+                christmasLights.forEach(light => {
+                    light.style.opacity = '0.7';
+                    light.style.transform = 'scale(1)';
+                });
+                break;
+            case 4: // Christmas dominates
+                christmasLights.forEach(light => {
+                    light.style.opacity = '1';
+                    light.style.transform = 'scale(1.2)';
+                });
+                halloweenLights.forEach(light => {
+                    light.style.opacity = '0.1';
+                });
+                break;
+            case 5: // Christmas fades a bit
+                christmasLights.forEach(light => {
+                    light.style.opacity = '0.5';
+                    light.style.transform = 'scale(1)';
+                });
+                break;
+            case 6: // Both combine
+                allLights.forEach(light => {
+                    light.style.opacity = '0.8';
+                    light.style.transform = 'scale(1.1)';
+                });
+                break;
+            case 7: // Big finale - all bright
+                allLights.forEach(light => {
+                    light.style.opacity = '1';
+                    light.style.transform = 'scale(1.2)';
+                });
+                break;
+        }
+        
+        step = (step + 1) % totalSteps;
+    }, 1500);
+    
+    combinedLightIntervals.push(interval);
+}
+
+// Festive mode - joyful and bright theme
+function applyFestiveMode(christmasLights, halloweenLights) {
+    // Festive colors - bright and cheerful
+    const festiveColors = [
+        '#ff0000', // Red
+        '#00ff00', // Green
+        '#ffff00', // Yellow
+        '#ff6600', // Orange
+        '#ff00ff', // Pink
+        '#00ffff'  // Cyan
+    ];
+    
+    // Set festive colors
+    [...christmasLights, ...halloweenLights].forEach((light, index) => {
+        const color = festiveColors[index % festiveColors.length];
+        light.style.backgroundColor = color;
+        light.style.boxShadow = `0 0 5px ${color}, 0 0 10px ${color}`;
+    });
+    
+    // Create a wave pattern across all lights
+    const allLights = [...christmasLights, ...halloweenLights].sort((a, b) => {
+        return parseInt(a.style.left) - parseInt(b.style.left);
+    });
+    
+    // Wave animation
+    allLights.forEach((light, index) => {
+        // Calculation for wave effect
+        const delay = (index * 0.1) % 3; // 0.1 second delay per light, repeat every 3 seconds
+        light.style.animation = 'pulse 3s infinite';
+        light.style.animationDelay = `${delay}s`;
+    });
+}
+
+// Spooky Christmas mode - Christmas colors with Halloween patterns
+function applySpookymasMode(christmasLights, halloweenLights) {
+    const allLights = [...christmasLights, ...halloweenLights];
+    
+    // Christmas colors
+    const christmasColors = ['#ff0000', '#00ff00', '#ffffff'];
+    
+    // Set Christmas colors on all lights
+    allLights.forEach((light, index) => {
+        const color = christmasColors[index % christmasColors.length];
+        light.style.backgroundColor = color;
+        light.style.boxShadow = `0 0 5px ${color}, 0 0 10px ${color}`;
+    });
+    
+    // But use Halloween-style flickering
+    allLights.forEach(light => {
+        // Random flickering like the spooky mode
+        const randomFlickerSpeed = 0.5 + Math.random() * 2;
+        light.style.animation = `twinkle${Math.floor(Math.random() * 3) + 1} ${randomFlickerSpeed}s infinite`;
+        light.style.animationDelay = (Math.random() * 2) + 's';
+    });
+    
+    // Occasional random dimming like in spooky mode
+    const interval = setInterval(() => {
+        allLights.forEach(light => {
+            if (Math.random() > 0.8) {
+                light.style.opacity = Math.random() * 0.7 + 0.3;
+            }
+        });
+    }, 200);
+    
+    combinedLightIntervals.push(interval);
+}
+
+// Candy Cane mode - red and white alternating pattern
+function applyCandycaneMode(christmasLights, halloweenLights) {
+    const allLights = [...christmasLights, ...halloweenLights].sort((a, b) => {
+        return parseInt(a.style.left) - parseInt(b.style.left);
+    });
+    
+    // Candy cane colors
+    const candyCaneColors = ['#ff0000', '#ffffff']; // Red and white
+    
+    // Set alternating pattern
+    allLights.forEach((light, index) => {
+        const color = candyCaneColors[index % 2];
+        light.style.backgroundColor = color;
+        light.style.boxShadow = `0 0 5px ${color}, 0 0 10px ${color}`;
+    });
+    
+    // Rotating pattern - lights move like on a barber pole
+    let offset = 0;
+    const interval = setInterval(() => {
+        allLights.forEach((light, index) => {
+            const colorIndex = (index + offset) % 2;
+            const color = candyCaneColors[colorIndex];
+            
+            light.style.backgroundColor = color;
+            light.style.boxShadow = `0 0 5px ${color}, 0 0 10px ${color}`;
+            
+            // Full brightness for all
+            light.style.opacity = '1';
+        });
+        
+        offset = (offset + 1) % 2;
+    }, 500);
+    
+    combinedLightIntervals.push(interval);
+}
+
+// Haunted mode - flickering with thunder effects
+function applyHauntedMode(christmasLights, halloweenLights) {
+    const allLights = [...christmasLights, ...halloweenLights];
+    
+    // Spooky colors
+    const hauntedColors = ['#66ccff', '#6600cc', '#00cc00'];
+    
+    // Set colors
+    allLights.forEach((light, index) => {
+        const color = hauntedColors[index % hauntedColors.length];
+        light.style.backgroundColor = color;
+        light.style.boxShadow = `0 0 5px ${color}, 0 0 10px ${color}`;
+        
+        // Set to dim initially
+        light.style.opacity = '0.3';
+        light.style.transform = 'scale(0.8)';
+    });
+    
+    // Lightning flash effect
+    function lightningFlash() {
+        // All lights flash bright
+        allLights.forEach(light => {
+            light.style.opacity = '1';
+            light.style.transform = 'scale(1.2)';
+        });
+        
+        // Flash the background too
+        document.getElementById('thunder-flash').style.animation = 'lightning-flash 1s';
+        
+        // Dim after short time
+        setTimeout(() => {
+            allLights.forEach(light => {
+                light.style.opacity = '0.3';
+                light.style.transform = 'scale(0.8)';
+            });
+            
+            // Secondary flash sometimes
+            if (Math.random() > 0.5) {
+                setTimeout(() => {
+                    allLights.forEach(light => {
+                        light.style.opacity = '1';
+                        light.style.transform = 'scale(1.2)';
+                    });
+                    
+                    setTimeout(() => {
+                        allLights.forEach(light => {
+                            light.style.opacity = '0.3';
+                            light.style.transform = 'scale(0.8)';
+                        });
+                    }, 100);
+                }, 300);
+            }
+        }, 200);
+        
+        // Schedule next flash
+        const nextFlash = 3000 + Math.random() * 10000; // 3-13 seconds
+        if (combinedModeEnabled) {
+            setTimeout(lightningFlash, nextFlash);
+        }
+    }
+    
+    // Start the lightning
+    lightningFlash();
+    
+    // Random subtle flickers between lightning
+    const interval = setInterval(() => {
+        allLights.forEach(light => {
+            if (Math.random() > 0.8) {
+                light.style.opacity = (0.2 + Math.random() * 0.3).toString();
+            }
+        });
+    }, 200);
+    
+    combinedLightIntervals.push(interval);
+}
+// Light mode slider
+document.getElementById('light-mode-slider').addEventListener('input', function () {
+    // Get mode based on slider value
+    const modeIndex = parseInt(this.value);
+    const selectedMode = lightModes[modeIndex];
+
+    // Apply selected mode
+    setLightMode(selectedMode);
+});
+
+// Halloween light mode slider
+document.getElementById('halloween-light-slider').addEventListener('input', function () {
+    // Get mode based on slider value
+    const modeIndex = parseInt(this.value);
+    const selectedMode = halloweenLightModes[modeIndex];
+
+    // Apply selected mode
+    setHalloweenLightMode(selectedMode);
+});
+
+// Combined light mode slider
+document.getElementById('combined-light-slider').addEventListener('input', function() {
+    // Get mode based on slider value
+    const modeIndex = parseInt(this.value);
+    const selectedMode = combinedLightModes[modeIndex];
+    
+    // Apply selected mode
+    setCombinedLightMode(selectedMode);
+});
+// Add event listener to Christmas toggle button
+document.getElementById('christmas-toggle').addEventListener('click', toggleChristmasMode);
+
+// Add event listener to Halloween toggle button
+document.getElementById('halloween-toggle').addEventListener('click', toggleHalloweenMode);
+
+// Add event listener to combined toggle button
+document.getElementById('combined-toggle').addEventListener('click', toggleCombinedMode);
+// Initialize
+window.addEventListener('load', function () {
+    spawnSymbols();
+});
