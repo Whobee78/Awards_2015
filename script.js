@@ -18,24 +18,64 @@ let currentCombinedLightMode = 'fusion';
 const combinedLightModes = ['fusion', 'alternating', 'dualtone', 'chaotic', 'seasonal', 'festive', 'spookymas', 'candycane', 'haunted'];
 let combinedLightIntervals = [];
 
+// Add this near the beginning of your script.js file:
+// Ensure YouTube players are completely hidden
+function hideYouTubePlayers() {
+    // Style for player1
+    const player1Div = document.getElementById('youtubePlayer');
+    if (player1Div) {
+        player1Div.style.position = 'absolute';
+        player1Div.style.width = '1px';
+        player1Div.style.height = '1px';
+        player1Div.style.opacity = '0';
+        player1Div.style.visibility = 'hidden';
+        player1Div.style.pointerEvents = 'none';
+        player1Div.style.zIndex = '-1';
+    }
+    
+    // Style for player2
+    const player2Div = document.getElementById('youtubePlayer2');
+    if (player2Div) {
+        player2Div.style.position = 'absolute';
+        player2Div.style.width = '1px';
+        player2Div.style.height = '1px';
+        player2Div.style.opacity = '0';
+        player2Div.style.visibility = 'hidden';
+        player2Div.style.pointerEvents = 'none';
+        player2Div.style.zIndex = '-1';
+    }
+}
 // Keyboard event listeners for music control
 document.addEventListener('keydown', function (event) {
     if (event.key === '4') {
         if (playerReady && player) {
+            // Stop player2 if it's playing
+            if (player2Ready && player2) {
+                player2.pauseVideo();
+            }
             player.playVideo();
             console.log("Playing main music...");
+            hideYouTubePlayers(); // Make sure players are hidden
         }
     }
     if (event.key === 's' || event.key === 'S') {
         if (playerReady && player) {
             player.pauseVideo();
-            console.log("Music stopped.");
         }
+        if (player2Ready && player2) {
+            player2.pauseVideo();
+        }
+        console.log("Music stopped.");
     }
     if (event.key === '5') {
         if (player2Ready && player2) {
+            // Stop player1 if it's playing
+            if (playerReady && player) {
+                player.pauseVideo();
+            }
             player2.playVideo();
             console.log("Playing alternate music...");
+            hideYouTubePlayers(); // Make sure players are hidden
         }
     }
 });
@@ -68,12 +108,14 @@ function onYouTubeIframeAPIReady() {
     player = new YT.Player('youtubePlayer', {
         videoId: 'hxpuusU8sTM', // PlayStation awards music
         playerVars: {
-            'autoplay': 0, // Don't autoplay initially
+            'autoplay': 0,
             'loop': 1,
             'playlist': 'hxpuusU8sTM',
             'controls': 0,
             'showinfo': 0,
-            'mute': 0 // Ensure it's not muted
+            'rel': 0, // Don't show related videos
+            'fs': 0,  // Don't allow fullscreen
+            'modestbranding': 1 // Hide YouTube logo
         },
         events: {
             'onReady': onPlayerReady,
@@ -81,22 +123,34 @@ function onYouTubeIframeAPIReady() {
         }
     });
     
+    // Create second player div if it doesn't exist
+    if (!document.getElementById('youtubePlayer2')) {
+        const player2Div = document.createElement('div');
+        player2Div.id = 'youtubePlayer2';
+        document.body.appendChild(player2Div);
+    }
+    
     // Second player (new video)
     player2 = new YT.Player('youtubePlayer2', {
-        videoId: 'sUOzplfB9ps', // Change this to your desired video ID
+        videoId: 'dQw4w9WgXcQ', // Change this to your desired video ID
         playerVars: {
             'autoplay': 0,
             'loop': 1,
-            'playlist': 'sUOzplfB9ps', // Same as videoId
+            'playlist': 'dQw4w9WgXcQ', // Same as videoId
             'controls': 0,
             'showinfo': 0,
-            'mute': 0
+            'rel': 0,
+            'fs': 0,
+            'modestbranding': 1
         },
         events: {
             'onReady': onPlayer2Ready,
             'onStateChange': onPlayer2StateChange
         }
     });
+    
+    // Make sure both players are hidden
+    setTimeout(hideYouTubePlayers, 500);
 }
 
 
