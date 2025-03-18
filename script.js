@@ -137,11 +137,11 @@ function onYouTubeIframeAPIReady() {
     player = new YT.Player('youtubePlayer', {
         width: '1',
         height: '1',
-        videoId: 'sUOzplfB9p', // PlayStation awards music
+        videoId: 'sUOzplfB9pV', // Fix: Use a complete and valid YouTube ID
         playerVars: {
             'autoplay': 0,
             'loop': 1,
-            'playlist': 'sUOzplfB9p',
+            'playlist': 'sUOzplfB9pV', // Same ID here too
             'controls': 0,
             'showinfo': 0,
             'rel': 0,
@@ -154,11 +154,10 @@ function onYouTubeIframeAPIReady() {
         }
     });
     
-    // Second player (new video)
-    player2 = new YT.Player('youtubePlayer2', {
+     player2 = new YT.Player('youtubePlayer2', {
         width: '1',
         height: '1',
-        videoId: 'hxpuusU8sTM', // Change this to your desired video ID
+        videoId: 'hxpuusU8sTM',
         playerVars: {
             'autoplay': 0,
             'loop': 1,
@@ -174,10 +173,10 @@ function onYouTubeIframeAPIReady() {
             'onStateChange': onPlayer2StateChange
         }
     });
+}
 
 
 
-// Define the callback functions
 function onPlayerReady(event) {
     playerReady = true;
     // Ensure player is hidden
@@ -195,9 +194,8 @@ function onPlayerStateChange(event) {
     if (event.data === YT.PlayerState.ENDED) {
         player.playVideo();
     }
+
 }
-
-
 function onPlayer2Ready(event) {
     player2Ready = true;
     // Ensure player is hidden
@@ -207,8 +205,9 @@ function onPlayer2Ready(event) {
             iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;visibility:hidden;pointer-events:none;z-index:-9999;';
         }
     }
+    hideYouTubePlayers();
     console.log("Second YouTube player is ready. Press '5' to start playing.");
-} // This closing brace was missing
+}
 function onPlayer2StateChange(event) {
     // If video ends, restart it
     if (event.data === YT.PlayerState.ENDED) {
@@ -225,11 +224,7 @@ document.addEventListener('keydown', function (event) {
     }
 });
 
-function onPlayer2Ready(event) {
-    player2Ready = true;
-    hideYouTubePlayers();
-    console.log("Second YouTube player is ready. Press '5' to start playing.");
-}
+
 // Ultra-bright neon colors for maximum intensity
 const neonColors = [
     '#ff00ff', // Magenta
