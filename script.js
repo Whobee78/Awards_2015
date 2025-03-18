@@ -17,7 +17,38 @@ let halloweenLightIntervals = [];
 let currentCombinedLightMode = 'fusion';
 const combinedLightModes = ['fusion', 'alternating', 'dualtone', 'chaotic', 'seasonal', 'festive', 'spookymas', 'candycane', 'haunted'];
 let combinedLightIntervals = [];
-
+// Add this to the beginning of your script:
+// Pre-hide YouTube player elements to prevent flashing
+document.addEventListener('DOMContentLoaded', function() {
+    // Create a style element
+    const style = document.createElement('style');
+    style.innerHTML = `
+        #youtubePlayer, #youtubePlayer2, iframe[src*="youtube.com"] {
+            position: fixed !important;
+            left: -9999px !important;
+            top: -9999px !important;
+            width: 1px !important;
+            height: 1px !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+            z-index: -9999 !important;
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Pre-create player containers
+    const playerDiv = document.getElementById('youtubePlayer') || document.createElement('div');
+    playerDiv.id = 'youtubePlayer';
+    playerDiv.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;visibility:hidden;pointer-events:none;z-index:-9999;';
+    
+    const player2Div = document.getElementById('youtubePlayer2') || document.createElement('div');
+    player2Div.id = 'youtubePlayer2';
+    player2Div.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;visibility:hidden;pointer-events:none;z-index:-9999;';
+    
+    if (!document.getElementById('youtubePlayer')) document.body.appendChild(playerDiv);
+    if (!document.getElementById('youtubePlayer2')) document.body.appendChild(player2Div);
+});
 // Add this near the beginning of your script.js file:
 // Ensure YouTube players are completely hidden
 function hideYouTubePlayers() {
@@ -55,7 +86,6 @@ document.addEventListener('keydown', function (event) {
             }
             player.playVideo();
             console.log("Playing main music...");
-            hideYouTubePlayers(); // Make sure players are hidden
         }
     }
     if (event.key === 's' || event.key === 'S') {
@@ -75,7 +105,6 @@ document.addEventListener('keydown', function (event) {
             }
             player2.playVideo();
             console.log("Playing alternate music...");
-            hideYouTubePlayers(); // Make sure players are hidden
         }
     }
 });
@@ -106,6 +135,8 @@ let player2Ready = false;
 function onYouTubeIframeAPIReady() {
     // First player (original)
     player = new YT.Player('youtubePlayer', {
+        width: '1',
+        height: '1',
         videoId: 'hxpuusU8sTM', // PlayStation awards music
         playerVars: {
             'autoplay': 0,
@@ -113,9 +144,9 @@ function onYouTubeIframeAPIReady() {
             'playlist': 'hxpuusU8sTM',
             'controls': 0,
             'showinfo': 0,
-            'rel': 0, // Don't show related videos
-            'fs': 0,  // Don't allow fullscreen
-            'modestbranding': 1 // Hide YouTube logo
+            'rel': 0,
+            'fs': 0,
+            'modestbranding': 1
         },
         events: {
             'onReady': onPlayerReady,
@@ -123,20 +154,15 @@ function onYouTubeIframeAPIReady() {
         }
     });
     
-    // Create second player div if it doesn't exist
-    if (!document.getElementById('youtubePlayer2')) {
-        const player2Div = document.createElement('div');
-        player2Div.id = 'youtubePlayer2';
-        document.body.appendChild(player2Div);
-    }
-    
     // Second player (new video)
     player2 = new YT.Player('youtubePlayer2', {
+        width: '1',
+        height: '1',
         videoId: 'dQw4w9WgXcQ', // Change this to your desired video ID
         playerVars: {
             'autoplay': 0,
             'loop': 1,
-            'playlist': 'sUOzplfB9ps', // Same as videoId
+            'playlist': 'sUOzplfB9p',
             'controls': 0,
             'showinfo': 0,
             'rel': 0,
@@ -148,17 +174,20 @@ function onYouTubeIframeAPIReady() {
             'onStateChange': onPlayer2StateChange
         }
     });
-    
-    // Make sure both players are hidden
-    setTimeout(hideYouTubePlayers, 500);
 }
 
 
 // Define the callback functions
 function onPlayerReady(event) {
     playerReady = true;
-    // Don't play automatically - wait for key press
-    console.log("YouTube player is ready. Press 'P' to start playing.");
+    // Ensure player is hidden
+    if (player.getIframe) {
+        const iframe = player.getIframe();
+        if (iframe) {
+            iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;visibility:hidden;pointer-events:none;z-index:-9999;';
+        }
+    }
+    console.log("YouTube player is ready. Press '4' to start playing.");
 }
 
 function onPlayerStateChange(event) {
@@ -168,10 +197,18 @@ function onPlayerStateChange(event) {
     }
 }
 
+
 function onPlayer2Ready(event) {
     player2Ready = true;
+    // Ensure player is hidden
+    if (player2.getIframe) {
+        const iframe = player2.getIframe();
+        if (iframe) {
+            iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;visibility:hidden;pointer-events:none;z-index:-9999;';
+        }
+    }
     console.log("Second YouTube player is ready. Press '5' to start playing.");
-}
+
 
 function onPlayer2StateChange(event) {
     // If video ends, restart it
