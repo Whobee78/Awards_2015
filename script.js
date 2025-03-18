@@ -158,7 +158,7 @@ function onYouTubeIframeAPIReady() {
     player2 = new YT.Player('youtubePlayer2', {
         width: '1',
         height: '1',
-        videoId: 'dQw4w9WgXcQ', // Change this to your desired video ID
+        videoId: 'sUOzplfB9p', // Change this to your desired video ID
         playerVars: {
             'autoplay': 0,
             'loop': 1,
