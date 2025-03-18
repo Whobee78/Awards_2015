@@ -17,6 +17,28 @@ let halloweenLightIntervals = [];
 let currentCombinedLightMode = 'fusion';
 const combinedLightModes = ['fusion', 'alternating', 'dualtone', 'chaotic', 'seasonal', 'festive', 'spookymas', 'candycane', 'haunted'];
 let combinedLightIntervals = [];
+
+// Create a global array to track all symbols that need LED updates
+let symbolUpdateFunctions = [];
+
+// Global timer to update all symbols simultaneously
+function startGlobalLEDTimer() {
+    // Clear any existing timer to prevent duplicates
+    if (window.globalLEDTimer) {
+        clearInterval(window.globalLEDTimer);
+    }
+    
+    // Set a single global timer that updates all symbols at once
+    window.globalLEDTimer = setInterval(() => {
+        // Call update function for each symbol
+        symbolUpdateFunctions.forEach(updateFn => {
+            if (typeof updateFn === 'function') {
+                updateFn();
+            }
+        });
+    }, 500);
+}
+
 // Add this to the beginning of your script:
 // Pre-hide YouTube player elements to prevent flashing
 document.addEventListener('DOMContentLoaded', function() {
@@ -49,6 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!document.getElementById('youtubePlayer')) document.body.appendChild(playerDiv);
     if (!document.getElementById('youtubePlayer2')) document.body.appendChild(player2Div);
 });
+
 // Add this near the beginning of your script.js file:
 // Ensure YouTube players are completely hidden
 function hideYouTubePlayers() {
@@ -76,6 +99,7 @@ function hideYouTubePlayers() {
         player2Div.style.zIndex = '-1';
     }
 }
+
 // Keyboard event listeners for music control
 document.addEventListener('keydown', function (event) {
     if (event.key === '4') {
@@ -108,6 +132,7 @@ document.addEventListener('keydown', function (event) {
         }
     }
 });
+
 let isGlowActive = false;
 
 document.addEventListener('keydown', function (event) {
@@ -117,6 +142,7 @@ document.addEventListener('keydown', function (event) {
         glowOverlay.style.opacity = isGlowActive ? '1' : '0';
     }
 });
+
 function autoToggleGlow() {
     const glowOverlay = document.getElementById('glow-overlay');
     isGlowActive = !isGlowActive;
@@ -289,39 +315,7 @@ function getRandomColors(count) {
 function getDistance(x1, y1, x2, y2) {
     return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
 }
-// Create a global array to track all symbols that need LED updates
-let symbolUpdateFunctions = [];
 
-// Global timer to update all symbols simultaneously
-function startGlobalLEDTimer() {
-    // Clear any existing timer to prevent duplicates
-    if (window.globalLEDTimer) {
-        clearInterval(window.globalLEDTimer);
-    }
-    
-    // Set a single global timer that updates all symbols at once
-    window.globalLEDTimer = setInterval(() => {
-        // Call update function for each symbol
-        symbolUpdateFunctions.forEach(updateFn => {
-            if (typeof updateFn === 'function') {
-                updateFn();
-            }
-        });
-    }, 500);
-}
-
-// Call this function when the page loads
-window.addEventListener('load', function () {
-    startGlobalLEDTimer();
-    spawnSymbols();
-});
-
-// Also restart the global timer when the page becomes visible again
-document.addEventListener('visibilitychange', function() {
-    if (!document.hidden) {
-        startGlobalLEDTimer();
-    }
-});
 function createSymbol(type) {
     const container = document.getElementById('container');
     const containerHeight = container.clientHeight;
@@ -818,162 +812,6 @@ function createSymbol(type) {
     updateActiveSegment();
     
     // REMOVED: setInterval(updateActiveSegment, 500);
-
-    document.getElementById('container').appendChild(symbol);
-}
-
-    let activePartIndex = 0;
-    function updateActiveSegment() {
-        svgParts.forEach(({ element }) => {
-            // Reset to lamp texture for inactive segments
-            element.setAttribute('stroke', '#333333');
-            element.classList.remove('neon-glow');
-            element.classList.add('lamp-texture');
-            element.setAttribute('filter', `url(#inactive-filter-${symbolId})`);
-            element.setAttribute('stroke-width', '1');
-        });
-
-        const currentPart = svgParts[activePartIndex];
-        currentPart.element.setAttribute('stroke', currentPart.color);
-        currentPart.element.classList.add('neon-glow');
-        currentPart.element.classList.remove('lamp-texture');
-
-        // Special treatment for blue
-        if (currentPart.color === '#0000ff') {
-            // Slightly increased thickness for blue
-            currentPart.element.setAttribute('stroke-width', '2.5');
-
-            // Enhanced filter only for blue
-            const blueEnhancedFilter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
-            blueEnhancedFilter.id = `blue-glow-${symbolId}`;
-            blueEnhancedFilter.innerHTML = `
-                <feGaussianBlur stdDeviation="5.5" result="coloredBlur"/>
-                <feMerge>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="SourceGraphic"/>
-                </feMerge>
-            `;
-
-           // Add filter to defs if it doesn't exist yet
-           const defs = symbol.querySelector('defs');
-            if (!defs.querySelector(`#blue-glow-${symbolId}`)) {
-                defs.appendChild(blueEnhancedFilter);
-            }
-
-            currentPart.element.setAttribute('filter', `url(#blue-glow-${symbolId})`);
-        }
-        // Special treatment for Halloween orange if Halloween mode is enabled
-        else if ((halloweenModeEnabled || combinedModeEnabled) && (currentPart.color === '#ff6600')) {
-            // Enhanced orange for Halloween
-            currentPart.element.setAttribute('stroke-width', '2.5');
-
-            // Special filter for orange
-            const orangeEnhancedFilter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
-            orangeEnhancedFilter.id = `orange-glow-${symbolId}`;
-            orangeEnhancedFilter.innerHTML = `
-                <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
-                <feMerge>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="SourceGraphic"/>
-                </feMerge>
-            `;
-
-            // Add filter to defs if it doesn't exist yet
-            const defs = symbol.querySelector('defs');
-            if (!defs.querySelector(`#orange-glow-${symbolId}`)) {
-                defs.appendChild(orangeEnhancedFilter);
-            }
-
-            currentPart.element.setAttribute('filter', `url(#orange-glow-${symbolId})`);
-        }
-        // Special treatment for Halloween purple if Halloween mode is enabled
-        else if ((halloweenModeEnabled || combinedModeEnabled) && (currentPart.color === '#6600cc')) {
-            // Enhanced purple for Halloween
-            currentPart.element.setAttribute('stroke-width', '2.5');
-
-            // Special filter for purple
-            const purpleEnhancedFilter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
-            purpleEnhancedFilter.id = `purple-glow-${symbolId}`;
-            purpleEnhancedFilter.innerHTML = `
-                <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
-                <feMerge>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="SourceGraphic"/>
-                </feMerge>
-            `;
-
-            // Add filter to defs if it doesn't exist yet
-            const defs = symbol.querySelector('defs');
-            if (!defs.querySelector(`#purple-glow-${symbolId}`)) {
-                defs.appendChild(purpleEnhancedFilter);
-            }
-
-            currentPart.element.setAttribute('filter', `url(#purple-glow-${symbolId})`);
-        }
-        // Special treatment for Christmas green if Christmas mode is enabled
-        else if ((christmasModeEnabled || combinedModeEnabled) && (currentPart.color === '#00ff00')) {
-            // Enhanced green for Christmas
-            currentPart.element.setAttribute('stroke-width', '2.5');
-
-            // Special filter for green
-            const greenEnhancedFilter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
-            greenEnhancedFilter.id = `green-glow-${symbolId}`;
-            greenEnhancedFilter.innerHTML = `
-                <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
-                <feMerge>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="SourceGraphic"/>
-                </feMerge>
-            `;
-
-            // Add filter to defs if it doesn't exist yet
-            const defs = symbol.querySelector('defs');
-            if (!defs.querySelector(`#green-glow-${symbolId}`)) {
-                defs.appendChild(greenEnhancedFilter);
-            }
-
-            currentPart.element.setAttribute('filter', `url(#green-glow-${symbolId})`);
-        }
-        // Special treatment for Christmas red if Christmas mode is enabled
-        else if ((christmasModeEnabled || combinedModeEnabled) && (currentPart.color === '#ff0000' || currentPart.color === '#E6252C')) {
-            // Enhanced red for Christmas
-            currentPart.element.setAttribute('stroke-width', '2.5');
-
-            // Special filter for red
-            const redEnhancedFilter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
-            redEnhancedFilter.id = `red-glow-${symbolId}`;
-            redEnhancedFilter.innerHTML = `
-                <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
-                <feMerge>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="SourceGraphic"/>
-                </feMerge>
-            `;
-
-            // Add filter to defs if it doesn't exist yet
-            const defs = symbol.querySelector('defs');
-            if (!defs.querySelector(`#red-glow-${symbolId}`)) {
-                defs.appendChild(redEnhancedFilter);
-            }
-
-            currentPart.element.setAttribute('filter', `url(#red-glow-${symbolId})`);
-        }
-        else {
-            // Standard settings for other colors
-            currentPart.element.setAttribute('filter', `url(#glow-${symbolId})`);
-            currentPart.element.setAttribute('stroke-width', '2');
-        }
-
-        activePartIndex = (activePartIndex + 1) % svgParts.length;
-    }
-
-    updateActiveSegment();
-    setInterval(updateActiveSegment, 500);
 
     document.getElementById('container').appendChild(symbol);
 }
