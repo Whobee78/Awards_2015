@@ -83,11 +83,11 @@ function onYouTubeIframeAPIReady() {
     
     // Second player (new video)
     player2 = new YT.Player('youtubePlayer2', {
-        videoId: 'dQw4w9WgXcQ', // Change this to your desired video ID
+        videoId: 'sUOzplfB9ps', // Change this to your desired video ID
         playerVars: {
             'autoplay': 0,
             'loop': 1,
-            'playlist': 'dQw4w9WgXcQ', // Same as videoId
+            'playlist': 'sUOzplfB9ps', // Same as videoId
             'controls': 0,
             'showinfo': 0,
             'mute': 0
