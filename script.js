@@ -17,28 +17,6 @@ let halloweenLightIntervals = [];
 let currentCombinedLightMode = 'fusion';
 const combinedLightModes = ['fusion', 'alternating', 'dualtone', 'chaotic', 'seasonal', 'festive', 'spookymas', 'candycane', 'haunted'];
 let combinedLightIntervals = [];
-
-// Create a global array to track all symbols that need LED updates
-let symbolUpdateFunctions = [];
-
-// Global timer to update all symbols simultaneously
-function startGlobalLEDTimer() {
-    // Clear any existing timer to prevent duplicates
-    if (window.globalLEDTimer) {
-        clearInterval(window.globalLEDTimer);
-    }
-    
-    // Set a single global timer that updates all symbols at once
-    window.globalLEDTimer = setInterval(() => {
-        // Call update function for each symbol
-        symbolUpdateFunctions.forEach(updateFn => {
-            if (typeof updateFn === 'function') {
-                updateFn();
-            }
-        });
-    }, 500);
-}
-
 // Add this to the beginning of your script:
 // Pre-hide YouTube player elements to prevent flashing
 document.addEventListener('DOMContentLoaded', function() {
@@ -71,7 +49,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!document.getElementById('youtubePlayer')) document.body.appendChild(playerDiv);
     if (!document.getElementById('youtubePlayer2')) document.body.appendChild(player2Div);
 });
-
 // Add this near the beginning of your script.js file:
 // Ensure YouTube players are completely hidden
 function hideYouTubePlayers() {
@@ -99,7 +76,6 @@ function hideYouTubePlayers() {
         player2Div.style.zIndex = '-1';
     }
 }
-
 // Keyboard event listeners for music control
 document.addEventListener('keydown', function (event) {
     if (event.key === '4') {
@@ -132,7 +108,6 @@ document.addEventListener('keydown', function (event) {
         }
     }
 });
-
 let isGlowActive = false;
 
 document.addEventListener('keydown', function (event) {
@@ -142,7 +117,6 @@ document.addEventListener('keydown', function (event) {
         glowOverlay.style.opacity = isGlowActive ? '1' : '0';
     }
 });
-
 function autoToggleGlow() {
     const glowOverlay = document.getElementById('glow-overlay');
     isGlowActive = !isGlowActive;
@@ -390,12 +364,6 @@ function createSymbol(type) {
 
     // Set up removal when animation ends
     symbol.addEventListener('animationend', () => {
-        // Remove the update function from the global array
-        const index = symbolUpdateFunctions.indexOf(updateActiveSegment);
-        if (index > -1) {
-            symbolUpdateFunctions.splice(index, 1);
-        }
-        
         symbol.remove();
         // Remove from active symbols array
         activeSymbols = activeSymbols.filter(s => s.id !== symbolId);
@@ -805,13 +773,8 @@ function createSymbol(type) {
         activePartIndex = (activePartIndex + 1) % svgParts.length;
     }
 
-    // Add this function to the global array instead of creating a separate interval
-    symbolUpdateFunctions.push(updateActiveSegment);
-    
-    // Call once to initialize
     updateActiveSegment();
-    
-    // REMOVED: setInterval(updateActiveSegment, 500);
+    setInterval(updateActiveSegment, 500);
 
     document.getElementById('container').appendChild(symbol);
 }
