@@ -188,7 +188,17 @@ document.addEventListener('keydown', function (event) {
         }
     }
 });
+function onPlayerReady(event) {
+    playerReady = true;
+    hideYouTubePlayers();
+    console.log("YouTube player is ready. Press '4' to start playing.");
+}
 
+function onPlayer2Ready(event) {
+    player2Ready = true;
+    hideYouTubePlayers();
+    console.log("Second YouTube player is ready. Press '5' to start playing.");
+}
 // Ultra-bright neon colors for maximum intensity
 const neonColors = [
     '#ff00ff', // Magenta
