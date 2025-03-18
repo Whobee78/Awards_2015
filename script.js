@@ -137,11 +137,11 @@ function onYouTubeIframeAPIReady() {
     player = new YT.Player('youtubePlayer', {
         width: '1',
         height: '1',
-        videoId: 'aTtl-PF5obg', // PlayStation awards music
+        videoId: 'sUOzplfB9p', // PlayStation awards music
         playerVars: {
             'autoplay': 0,
             'loop': 1,
-            'playlist': 'aTtl-PF5obg',
+            'playlist': 'sUOzplfB9p',
             'controls': 0,
             'showinfo': 0,
             'rel': 0,
