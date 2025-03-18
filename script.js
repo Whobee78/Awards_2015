@@ -208,8 +208,7 @@ function onPlayer2Ready(event) {
         }
     }
     console.log("Second YouTube player is ready. Press '5' to start playing.");
-
-
+} // This closing brace was missing
 function onPlayer2StateChange(event) {
     // If video ends, restart it
     if (event.data === YT.PlayerState.ENDED) {
@@ -225,11 +224,6 @@ document.addEventListener('keydown', function (event) {
         }
     }
 });
-function onPlayerReady(event) {
-    playerReady = true;
-    hideYouTubePlayers();
-    console.log("YouTube player is ready. Press '4' to start playing.");
-}
 
 function onPlayer2Ready(event) {
     player2Ready = true;
