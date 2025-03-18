@@ -137,11 +137,11 @@ function onYouTubeIframeAPIReady() {
     player = new YT.Player('youtubePlayer', {
         width: '1',
         height: '1',
-        videoId: '3o_XA83KEvI', // Fix: Replace this with a valid YouTube video ID
+        videoId: 'sUOzplfB9ps', // Fix: Replace this with a valid YouTube video ID
         playerVars: {
             'autoplay': 0,
             'loop': 1,
-            'playlist': '3o_XA83KEvI', // Fix: Match the playlist with the video ID
+            'playlist': 'sUOzplfB9ps', // Fix: Match the playlist with the video ID
             'controls': 0,
             'showinfo': 0,
             'rel': 0,
