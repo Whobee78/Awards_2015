@@ -137,11 +137,11 @@ function onYouTubeIframeAPIReady() {
     player = new YT.Player('youtubePlayer', {
         width: '1',
         height: '1',
-        videoId: 'aTtl-PF5obg', // Fix: Use a complete and valid YouTube ID
+        videoId: '3o_XA83KEvI', // Fix: Replace this with a valid YouTube video ID
         playerVars: {
             'autoplay': 0,
             'loop': 1,
-            'playlist': 'aTtl-PF5obg', // Same ID here too
+            'playlist': '3o_XA83KEvI', // Fix: Match the playlist with the video ID
             'controls': 0,
             'showinfo': 0,
             'rel': 0,
@@ -154,10 +154,11 @@ function onYouTubeIframeAPIReady() {
         }
     });
     
-     player2 = new YT.Player('youtubePlayer2', {
+    // Second player (new video)
+    player2 = new YT.Player('youtubePlayer2', {
         width: '1',
         height: '1',
-        videoId: 'hxpuusU8sTM',
+        videoId: 'hxpuusU8sTM', // This one seems valid
         playerVars: {
             'autoplay': 0,
             'loop': 1,
@@ -173,57 +174,46 @@ function onYouTubeIframeAPIReady() {
             'onStateChange': onPlayer2StateChange
         }
     });
-}
 
-
-
-function onPlayerReady(event) {
-    playerReady = true;
-    // Ensure player is hidden
-    if (player.getIframe) {
-        const iframe = player.getIframe();
-        if (iframe) {
-            iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;visibility:hidden;pointer-events:none;z-index:-9999;';
+    // Define the callback functions within this function to ensure they're in scope
+    function onPlayerReady(event) {
+        playerReady = true;
+        // Ensure player is hidden
+        if (player.getIframe) {
+            const iframe = player.getIframe();
+            if (iframe) {
+                iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;visibility:hidden;pointer-events:none;z-index:-9999;';
+            }
         }
-    }
-    console.log("YouTube player is ready. Press '4' to start playing.");
-}
-
-function onPlayerStateChange(event) {
-    // If video ends, restart it
-    if (event.data === YT.PlayerState.ENDED) {
-        player.playVideo();
+        console.log("YouTube player is ready. Press '4' to start playing.");
     }
 
-}
-function onPlayer2Ready(event) {
-    player2Ready = true;
-    // Ensure player is hidden
-    if (player2.getIframe) {
-        const iframe = player2.getIframe();
-        if (iframe) {
-            iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;visibility:hidden;pointer-events:none;z-index:-9999;';
-        }
-    }
-    hideYouTubePlayers();
-    console.log("Second YouTube player is ready. Press '5' to start playing.");
-}
-function onPlayer2StateChange(event) {
-    // If video ends, restart it
-    if (event.data === YT.PlayerState.ENDED) {
-        player2.playVideo();
-    }
-}
-// Add keyboard event listener to start playing when 'P' is pressed
-document.addEventListener('keydown', function (event) {
-    if (event.key === 'p' || event.key === 'P') {
-        if (playerReady && player) {
+    function onPlayerStateChange(event) {
+        // If video ends, restart it
+        if (event.data === YT.PlayerState.ENDED) {
             player.playVideo();
-            console.log("Playing music...");
         }
     }
-});
 
+    function onPlayer2Ready(event) {
+        player2Ready = true;
+        // Ensure player is hidden
+        if (player2.getIframe) {
+            const iframe = player2.getIframe();
+            if (iframe) {
+                iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;visibility:hidden;pointer-events:none;z-index:-9999;';
+            }
+        }
+        console.log("Second YouTube player is ready. Press '5' to start playing.");
+    }
+
+    function onPlayer2StateChange(event) {
+        // If video ends, restart it
+        if (event.data === YT.PlayerState.ENDED) {
+            player2.playVideo();
+        }
+    }
+} 
 
 // Ultra-bright neon colors for maximum intensity
 const neonColors = [
