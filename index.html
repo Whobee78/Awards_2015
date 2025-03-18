@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlayStation Awards 2015 Theme - Combined Edition</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- YouTube iframe API script -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+</head>
+
+<body>
+    <div id="glow-toggle">Toggle Glow</div>
+    <div class="glow-overlay" id="glow-overlay"></div>
+
+    <!-- Christmas toggle button -->
+    <button id="christmas-toggle">Enable Christmas Mode</button>
+
+    <!-- Halloween toggle button -->
+    <button id="halloween-toggle">Enable Halloween Mode</button>
+    
+    <!-- Combined mode toggle button -->
+    <button id="combined-toggle">Enable Combined Mode</button>
+
+    <!-- Christmas elements - all initially hidden -->
+    <div id="snow-container"></div>
+    <button id="xmas-music-btn">Play Christmas Music</button>
+    <div id="light-mode-control" style="display: none;">
+        <span id="light-mode-label">Light Mode: Random</span>
+        <input type="range" id="light-mode-slider" min="0" max="9" value="0">
+    </div>
+
+    <!-- Christmas lights container -->
+    <div class="lights-container" id="lights-container">
+        <div class="light-cord"></div>
+        <!-- Lights will be added dynamically -->
+    </div>
+
+    <!-- Mini Christmas tree -->
+    <div class="mini-tree">
+        <div class="tree-part"></div>
+        <div class="tree-part"></div>
+        <div class="tree-part"></div>
+        <div class="tree-trunk"></div>
+    </div>
+
+    <!-- Christmas hat for the PlayStation logo -->
+    <div class="christmas-hat">
+        <div class="hat-trim"></div>
+        <div class="hat-pompom"></div>
+    </div>
+
+    <!-- Halloween elements - all initially hidden -->
+    <div id="halloween-elements-container"></div>
+    <button id="halloween-music-btn">Play Halloween Music</button>
+    <div id="halloween-light-control" style="display: none;">
+        <span id="halloween-light-label">Light Mode: Spooky</span>
+        <input type="range" id="halloween-light-slider" min="0" max="6" value="0">
+    </div>
+
+    <!-- Halloween lights container -->
+    <div class="halloween-lights-container" id="halloween-lights-container">
+        <div class="halloween-light-cord"></div>
+        <!-- Lights will be added dynamically -->
+    </div>
+
+    <!-- Pumpkin patch corner decoration -->
+    <div class="pumpkin-patch" id="pumpkin-patch">
+        <!-- Pumpkins will be added dynamically -->
+    </div>
+
+    <!-- Ghost decorations -->
+    <div class="ghost" id="ghost1" style="bottom: 200px; right: 100px;">
+        <div class="ghost-eyes">
+            <div class="ghost-eye"></div>
+            <div class="ghost-eye"></div>
+        </div>
+        <div class="ghost-mouth"></div>
+    </div>
+
+    <div class="ghost" id="ghost2" style="bottom: 200px; left: 100px;">
+        <div class="ghost-eyes">
+            <div class="ghost-eye"></div>
+            <div class="ghost-eye"></div>
+        </div>
+        <div class="ghost-mouth"></div>
+    </div>
+
+    <!-- Spider web in corner -->
+    <div class="spider-web" id="spider-web">
+        <svg width="150" height="150" viewBox="0 0 150 150">
+            <path
+                d="M75,0 L75,150 M0,75 L150,75 M0,0 L150,150 M150,0 L0,150 M37.5,0 L75,150 M112.5,0 L75,150 M0,37.5 L150,75 M0,112.5 L150,75"
+                stroke="rgba(255,255,255,0.4)" stroke-width="1" fill="none" />
+            <circle cx="75" cy="75" r="8" fill="black" />
+            <path d="M75,75 L75,85 M71,79 L79,79" stroke="black" stroke-width="2" />
+        </svg>
+    </div>
+
+    <!-- Witch hat for PlayStation logo -->
+    <div class="witch-hat">
+        <div class="witch-hat-cone"></div>
+        <div class="witch-hat-base"></div>
+        <div class="witch-hat-band"></div>
+        <div class="witch-hat-buckle"></div>
+    </div>
+
+    <!-- Combined mode elements -->
+    <button id="combined-music-btn">Play Combined Music</button>
+    <div id="combined-light-control" style="display: none;">
+        <span id="combined-light-label">Light Mode: Fusion</span>
+        <input type="range" id="combined-light-slider" min="0" max="8" value="0">
+    </div>
+
+    <!-- Combined hat decoration -->
+    <div class="dual-hat">
+        <div class="dual-hat-left"></div>
+        <div class="dual-hat-right"></div>
+        <div class="dual-hat-trim"></div>
+        <div class="dual-hat-pompom"></div>
+    </div>
+
+    <!-- Combined corner decoration container -->
+    <div class="combined-corner" id="combined-corner">
+        <!-- Will be populated with combined tree and pumpkins -->
+    </div>
+
+    <!-- Thunder flash effect -->
+    <div class="thunder-flash" id="thunder-flash"></div>
+
+    <!-- Fog effect -->
+    <div class="fog" id="fog-effect"></div>
+
+    <!-- Hidden YouTube player div -->
+    <div id="youtubePlayer"></div>
+    <div id="halloweenPlayer"></div>
+    <div id="xmasPlayer"></div>
+    <div id="combinedPlayer"></div>
+    
+    <div class="time" id="clock">12:34</div>
+    <div id="play-instruction"
+        style="position: absolute; top: 20px; left: 200px; color: white; font-size: 20px; font-family: 'Calibri', sans-serif;">
+        Press 'P' to play music
+    </div>
+    <div id="container">
+        <div class="ps-logo">
+            <img src="https://img.icons8.com/ios11/512/FFFFFF/play-station.png" class="ps-symbol-img"
+                alt="PlayStation Logo"><span style="font-size: 0.2em;">®</span>
+            PlayStation<span style="font-size: 0.2em;">®</span>
+
+            <div class="awards-text">A w a r d s &nbsp; 2 0 1 5</div>
+        </div>
+        <img id="icon" src="icona.png" style="height: 375px; width: 161px;">
+    </div>
+
+    <!-- Load JavaScript file -->
+    <script src="script.js"></script>
+</body>
+
+</html>

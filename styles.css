@@ -1,0 +1,997 @@
+body,
+html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: black;
+    font-family: 'Arial', sans-serif;
+}
+
+#container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+@font-face {
+    font-family: 'Sony Sketch EF';
+    src: url('Sony_Sketch_EF.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+.ps-logo {
+    position: absolute;
+    bottom: 200px;
+    right: 300px;
+    color: white;
+    font-size: 80px;
+    font-weight: lighter;
+    text-align: center;
+    letter-spacing: 2px;
+}
+
+.ps-symbol-img {
+    width: 120px;
+    height: 120px;
+    vertical-align: -30%;
+}
+
+.awards-text {
+    font-size: 60px;
+    font-weight: lighter;
+    font-family: 'Calibri', sans-serif;
+    margin-top: 25px;
+    letter-spacing: 8px;
+    color: #b8860b;
+    /* Gold color from original */
+}
+
+.ps-symbol {
+    position: absolute;
+    right: -50px;
+    width: 52.5px;
+    height: 52.5px;
+    stroke-width: 4px;
+    /* Increased for better glow visibility */
+    fill: transparent;
+    opacity: 0;
+    animation: moveLeft 50s linear forwards;
+    filter: blur(0.6px);
+    z-index: 10;
+}
+
+#icon {
+    position: absolute;
+    bottom: 130px;
+    right: 140px;
+    font-size: 80px;
+    font-family: 'Bottega', sans-serif;
+    text-align: center;
+    letter-spacing: 2px;
+}
+
+.neon-glow {
+    filter: drop-shadow(0 0 5px currentColor) drop-shadow(0 0 10px currentColor) drop-shadow(0 0 20px currentColor) drop-shadow(0 0 30px currentColor);
+}
+
+.lamp-texture {
+    filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.15));
+}
+
+.glow-overlay {
+    position: absolute;
+    bottom: 120px;
+    right: 425px;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(255, 236, 0, 0.2) 0%, rgba(255, 236, 0, 0.1) 70%, transparent 100%);
+    filter: blur(80px);
+    opacity: 0;
+    border-radius: 50%;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+    z-index: 5;
+}
+
+@keyframes moveLeft {
+    0% {
+        transform: translateX(0);
+        opacity: 0;
+    }
+
+    5% {
+        opacity: 1;
+    }
+
+    95% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateX(-200vw);
+        opacity: 0;
+    }
+}
+
+@font-face {
+    font-family: 'SSTLightIt';
+    src: url('/SSTLightIt.TTF');
+    font-weight: 300;
+    font-style: normal;
+}
+
+.time {
+    position: absolute;
+    top: 100px;
+    right: 100px;
+    color: white;
+    font-weight: lighter;
+    font-family: 'Calibri', sans-serif;
+    font-size: 50px;
+}
+
+#youtubePlayer {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* Christmas theme toggle button */
+#christmas-toggle {
+    position: absolute;
+    top: 50px;
+    left: 20px;
+    background-color: #ff0000;
+    color: white;
+    border: 2px solid white;
+    border-radius: 5px;
+    padding: 10px 15px;
+    cursor: pointer;
+    z-index: 100;
+    font-family: 'Calibri', sans-serif;
+    font-size: 16px;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+}
+
+#christmas-toggle:hover {
+    background-color: #cc0000;
+    box-shadow: 0 0 15px rgba(255, 0, 0, 1);
+}
+
+/* Snowfall Animation */
+.snowflake {
+    color: #fff;
+    font-size: 1em;
+    font-family: Arial, sans-serif;
+    text-shadow: 0 0 5px #000;
+    position: fixed;
+    top: -10%;
+    z-index: 9999;
+    user-select: none;
+    cursor: default;
+    animation-name: snowfall;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    display: none;
+    /* Initially hidden */
+}
+
+@keyframes snowfall {
+    0% {
+        transform: translateY(0) rotate(0deg);
+    }
+
+    100% {
+        transform: translateY(100vh) rotate(360deg);
+    }
+}
+
+/* Christmas hat */
+.christmas-hat {
+    position: absolute;
+    width: 70px;
+    height: 60px;
+    background-color: #ff0000;
+    border-radius: 5px 80% 0 0;
+    top: 155px;
+    right: 530px;
+    transform: rotate(-15deg);
+    z-index: 15;
+    display: none;
+    /* Initially hidden */
+}
+
+.hat-trim {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 15px;
+    background-color: white;
+    border-radius: 2px;
+}
+
+.hat-pompom {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background-color: white;
+    border-radius: 50%;
+    top: -10px;
+    right: 0;
+}
+
+/* Christmas lights - LED-style */
+.lights-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 30px;
+    display: none;
+    /* Initially hidden */
+    z-index: 100;
+}
+
+.christmas-light {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    z-index: 8;
+    top: 10px;
+}
+
+/* LED light cord */
+.light-cord {
+    position: absolute;
+    top: 5px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: #404040;
+    z-index: 7;
+    display: none;
+    /* Initially hidden */
+}
+
+/* Define different light patterns */
+@keyframes twinkle1 {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.2;
+    }
+}
+
+@keyframes twinkle2 {
+
+    0%,
+    100% {
+        opacity: 0.3;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+@keyframes twinkle3 {
+
+    0%,
+    100% {
+        opacity: 0.7;
+    }
+
+    33% {
+        opacity: 1;
+    }
+
+    66% {
+        opacity: 0.3;
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(0.8);
+        opacity: 0.6;
+    }
+
+    50% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(0.8);
+        opacity: 0.6;
+    }
+}
+
+@keyframes blink {
+
+    0%,
+    49% {
+        opacity: 1;
+    }
+
+    50%,
+    100% {
+        opacity: 0.2;
+    }
+}
+
+/* Christmas tree in corner */
+.mini-tree {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    width: 100px;
+    height: 150px;
+    z-index: 5;
+    display: none;
+    /* Initially hidden */
+}
+
+.tree-part {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-left: 50px solid transparent;
+    border-right: 50px solid transparent;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.tree-part:nth-child(1) {
+    bottom: 30px;
+    border-bottom: 50px solid #0e5b0e;
+}
+
+.tree-part:nth-child(2) {
+    bottom: 60px;
+    border-left: 40px solid transparent;
+    border-right: 40px solid transparent;
+    border-bottom: 50px solid #0e5b0e;
+}
+
+.tree-part:nth-child(3) {
+    bottom: 90px;
+    border-left: 30px solid transparent;
+    border-right: 30px solid transparent;
+    border-bottom: 40px solid #0e5b0e;
+}
+
+.tree-trunk {
+    position: absolute;
+    width: 20px;
+    height: 30px;
+    background-color: #8B4513;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* Tree lights */
+.tree-light {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    z-index: 6;
+}
+
+/* Christmas music and light modes toggle buttons */
+#xmas-music-btn,
+#light-mode-btn {
+    position: absolute;
+    top: 20px;
+    background-color: #ff0000;
+    color: white;
+    border: 2px solid white;
+    border-radius: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+    z-index: 100;
+    font-family: 'Calibri', sans-serif;
+    display: none;
+    /* Initially hidden */
+}
+
+#xmas-music-btn {
+    top: 60px;
+    left: 235px;
+}
+
+#light-mode-btn {
+    left: 390px;
+    background-color: #00aaff;
+}
+
+#xmas-music-btn:hover {
+    background-color: #cc0000;
+}
+
+#light-mode-btn:hover {
+    background-color: #0088cc;
+}
+
+#light-mode-control {
+    position: absolute;
+    top: 50px;
+    left: 390px;
+    background-color: #00aaff;
+    color: white;
+    border: 2px solid white;
+    border-radius: 5px;
+    padding: 8px 12px;
+    width: 200px;
+    z-index: 100;
+    font-family: 'Calibri', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    display: none;
+}
+
+#light-mode-slider {
+    width: 180px;
+    height: 20px;
+    -webkit-appearance: none;
+    background: linear-gradient(to right, #ff0000, #00ff00, #0000ff, #ffff00, #ff00ff);
+    border-radius: 10px;
+    outline: none;
+}
+
+#light-mode-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    border: 1px solid #888;
+}
+
+/* HALLOWEEN THEME STYLES START HERE */
+
+/* Halloween toggle button */
+#halloween-toggle {
+    position: absolute;
+    top: 50px;
+    left: 230px;
+    background-color: #ff6600;
+    color: white;
+    border: 2px solid white;
+    border-radius: 5px;
+    padding: 10px 15px;
+    cursor: pointer;
+    z-index: 100;
+    font-family: 'Calibri', sans-serif;
+    font-size: 16px;
+    box-shadow: 0 0 10px rgba(255, 102, 0, 0.7);
+}
+
+#halloween-toggle:hover {
+    background-color: #cc5200;
+    box-shadow: 0 0 15px rgba(255, 102, 0, 1);
+}
+
+/* Halloween Falling Elements (Bats & Leaves) */
+.halloween-element {
+    color: #fff;
+    font-size: 1.5em;
+    font-family: Arial, sans-serif;
+    text-shadow: 0 0 5px #000;
+    position: fixed;
+    top: -10%;
+    z-index: 9999;
+    user-select: none;
+    cursor: default;
+    animation-name: halloween-fall;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    display: none;
+}
+
+@keyframes halloween-fall {
+    0% {
+        transform: translateY(0) rotate(0deg);
+    }
+
+    25% {
+        transform: translateY(25vh) rotate(90deg) translateX(20px);
+    }
+
+    50% {
+        transform: translateY(50vh) rotate(180deg) translateX(-20px);
+    }
+
+    75% {
+        transform: translateY(75vh) rotate(270deg) translateX(20px);
+    }
+
+    100% {
+        transform: translateY(100vh) rotate(360deg);
+    }
+}
+
+/* Halloween witch hat */
+.witch-hat {
+    position: absolute;
+    width: 80px;
+    height: 90px;
+    top: 140px;
+    right: 530px;
+    transform: rotate(-15deg);
+    z-index: 15;
+    display: none;
+}
+
+.witch-hat-base {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 25px;
+    background-color: #222;
+    border-radius: 50%;
+    z-index: 16;
+}
+
+.witch-hat-cone {
+    position: absolute;
+    bottom: 20px;
+    left: 25%;
+    width: 0;
+    height: 0;
+    border-left: 25px solid transparent;
+    border-right: 25px solid transparent;
+    border-bottom: 70px solid #222;
+    transform: rotate(180deg);
+    z-index: 16;
+}
+
+.witch-hat-band {
+    position: absolute;
+    bottom: 15px;
+    width: 100%;
+    height: 10px;
+    background-color: #ff6600;
+    z-index: 17;
+}
+
+.witch-hat-buckle {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background-color: #ffcc00;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 18;
+}
+
+/* Halloween lights */
+.halloween-lights-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 30px;
+    display: none;
+    z-index: 100;
+}
+
+.halloween-light {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    z-index: 8;
+    top: 10px;
+}
+
+.halloween-light-cord {
+    position: absolute;
+    top: 5px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: #404040;
+    z-index: 7;
+    display: none;
+}
+
+/* Halloween corner decoration (pumpkin patch) */
+.pumpkin-patch {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    width: 150px;
+    height: 120px;
+    z-index: 5;
+    display: none;
+}
+
+.pumpkin {
+    position: absolute;
+    width: 40px;
+    height: 35px;
+    background-color: #ff6600;
+    border-radius: 40%;
+    z-index: 6;
+}
+
+.pumpkin-stem {
+    position: absolute;
+    width: 8px;
+    height: 12px;
+    background-color: #336600;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 2px;
+    z-index: 7;
+}
+
+.pumpkin-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 8;
+}
+
+.pumpkin-eyes {
+    display: flex;
+    justify-content: space-between;
+    width: 70%;
+    margin-bottom: 3px;
+}
+
+.pumpkin-eye {
+    width: 8px;
+    height: 8px;
+    background-color: #000;
+    border-radius: 2px;
+}
+
+.pumpkin-mouth {
+    width: 20px;
+    height: 8px;
+    background-color: #000;
+    border-radius: 2px;
+}
+
+/* Ghost decoration */
+.ghost {
+    position: absolute;
+    width: 40px;
+    height: 50px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 50% 50% 0 0;
+    z-index: 8;
+    transform-origin: center bottom;
+    animation: ghost-float 4s ease-in-out infinite;
+    display: none;
+}
+
+.ghost-eyes {
+    position: absolute;
+    top: 20%;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+}
+
+.ghost-eye {
+    width: 6px;
+    height: 6px;
+    background-color: #000;
+    border-radius: 50%;
+}
+
+.ghost-mouth {
+    position: absolute;
+    top: 60%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 10px;
+    height: 4px;
+    background-color: #000;
+    border-radius: 50%;
+}
+
+@keyframes ghost-float {
+
+    0%,
+    100% {
+        transform: translateY(0) rotate(5deg);
+    }
+
+    50% {
+        transform: translateY(-15px) rotate(-5deg);
+    }
+}
+
+/* Spider web */
+.spider-web {
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    top: 0;
+    right: 0;
+    z-index: 20;
+    display: none;
+}
+
+/* Halloween music button */
+#halloween-music-btn {
+    position: absolute;
+    top: 60px;
+    left: 440px;
+    background-color: #6600cc;
+    color: white;
+    border: 2px solid white;
+    border-radius: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+    z-index: 100;
+    font-family: 'Calibri', sans-serif;
+    display: none;
+}
+
+#halloween-music-btn:hover {
+    background-color: #5500aa;
+}
+
+/* Halloween light control */
+#halloween-light-control {
+    position: absolute;
+    top: 50px;
+    left: 600px;
+    background-color: #6600cc;
+    color: white;
+    border: 2px solid white;
+    border-radius: 5px;
+    padding: 8px 12px;
+    width: 200px;
+    z-index: 100;
+    font-family: 'Calibri', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    display: none;
+}
+
+#halloween-light-slider {
+    width: 180px;
+    height: 20px;
+    -webkit-appearance: none;
+    background: linear-gradient(to right, #ff6600, #6600cc, #00ff00, #ff00ff, #66ccff);
+    border-radius: 10px;
+    outline: none;
+}
+
+#halloween-light-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    border: 1px solid #888;
+}
+
+/* Thunder flash effect */
+.thunder-flash {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    z-index: 200;
+    opacity: 0;
+    pointer-events: none;
+}
+
+@keyframes lightning-flash {
+
+    0%,
+    100% {
+        opacity: 0;
+    }
+
+    10%,
+    30%,
+    50% {
+        opacity: 0.3;
+    }
+
+    5%,
+    25%,
+    35% {
+        opacity: 0.8;
+    }
+}
+
+/* Fog effect */
+.fog {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 40%;
+    background: linear-gradient(to top, rgba(50, 50, 50, 0.5) 0%, transparent 100%);
+    z-index: 90;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 2s ease;
+}
+
+/* COMBINED MODE STYLES */
+/* Combined mode toggle button */
+#combined-toggle {
+    position: absolute;
+    top: 50px;
+    left: 550px;
+    background: linear-gradient(to right, #ff0000, #ff6600);
+    color: white;
+    border: 2px solid white;
+    border-radius: 5px;
+    padding: 10px 15px;
+    cursor: pointer;
+    z-index: 100;
+    font-family: 'Calibri', sans-serif;
+    font-size: 16px;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.7), 0 0 10px rgba(255, 102, 0, 0.7);
+}
+
+#combined-toggle:hover {
+    background: linear-gradient(to right, #cc0000, #cc5200);
+    box-shadow: 0 0 15px rgba(255, 0, 0, 1), 0 0 15px rgba(255, 102, 0, 1);
+}
+
+/* Combined mode controls */
+#combined-music-btn {
+    position: absolute;
+    top: 60px;
+    left: 750px;
+    background: linear-gradient(to right, #ff0000, #6600cc);
+    color: white;
+    border: 2px solid white;
+    border-radius: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+    z-index: 100;
+    font-family: 'Calibri', sans-serif;
+    display: none;
+}
+
+#combined-music-btn:hover {
+    background: linear-gradient(to right, #cc0000, #5500aa);
+}
+
+#combined-light-control {
+    position: absolute;
+    top: 50px;
+    left: 850px;
+    background: linear-gradient(to right, #00ff00, #6600cc);
+    color: white;
+    border: 2px solid white;
+    border-radius: 5px;
+    padding: 8px 12px;
+    width: 200px;
+    z-index: 100;
+    font-family: 'Calibri', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    display: none;
+}
+
+#combined-light-slider {
+    width: 180px;
+    height: 20px;
+    -webkit-appearance: none;
+    background: linear-gradient(to right, #ff0000, #00ff00, #0000ff, #ff6600, #6600cc, #ffcc00);
+    border-radius: 10px;
+    outline: none;
+}
+
+#combined-light-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    border: 1px solid #888;
+}
+
+/* Dual decorations */
+.dual-hat {
+    position: absolute;
+    width: 80px;
+    height: 90px;
+    top: 140px;
+    right: 530px;
+    transform: rotate(-15deg);
+    z-index: 15;
+    display: none;
+}
+
+.dual-hat-left {
+    position: absolute;
+    width: 70px;
+    height: 60px;
+    background-color: #ff0000;
+    border-radius: 5px 80% 0 0;
+    top: 0;
+    left: 0;
+    z-index: 16;
+}
+
+.dual-hat-right {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-left: 25px solid transparent;
+    border-right: 25px solid transparent;
+    border-bottom: 70px solid #222;
+    transform: rotate(180deg);
+    top: 0;
+    right: 0;
+    z-index: 16;
+}
+
+.dual-hat-trim {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 70px;
+    height: 15px;
+    background-color: white;
+    border-radius: 2px;
+    z-index: 17;
+}
+
+.dual-hat-pompom {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background-color: white;
+    border-radius: 50%;
+    top: -10px;
+    left: 20px;
+    z-index: 17;
+}
+
+/* Combined corner decoration */
+.combined-corner {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    width: 200px;
+    height: 150px;
+    z-index: 5;
+    display: none;
+}
