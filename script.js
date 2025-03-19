@@ -252,6 +252,12 @@ let activeSymbols = [];
 // Minimum spacing between symbols in pixels
 const MIN_SPACING = 200;
 
+// Global array to store all active symbols' data for synchronized animation
+let symbolsData = [];
+
+// Global timer to synchronize all symbols
+let globalSymbolTimer = null;
+
 function updateClock() {
     const now = new Date();
     const hours = now.getHours();
@@ -288,6 +294,68 @@ function getRandomColors(count) {
 // Calculate distance between two points (x1,y1) and (x2,y2)
 function getDistance(x1, y1, x2, y2) {
     return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
+}
+
+// Update all symbols' active segments simultaneously
+function updateAllSymbols() {
+    symbolsData.forEach(symbolData => {
+        const { svgParts, activePartIndex, symbolId } = symbolData;
+        
+        // Reset all parts of this symbol
+        svgParts.forEach(({ element }) => {
+            element.setAttribute('stroke', '#333333');
+            element.classList.remove('neon-glow');
+            element.classList.add('lamp-texture');
+            element.setAttribute('filter', `url(#inactive-filter-${symbolId})`);
+            element.setAttribute('stroke-width', '1');
+        });
+
+        // Activate current part
+        const currentPart = svgParts[symbolData.activePartIndex];
+        currentPart.element.setAttribute('stroke', currentPart.color);
+        currentPart.element.classList.add('neon-glow');
+        currentPart.element.classList.remove('lamp-texture');
+
+        // Special treatment for blue
+        if (currentPart.color === '#0000ff') {
+            currentPart.element.setAttribute('stroke-width', '2.5');
+            currentPart.element.setAttribute('filter', `url(#blue-glow-${symbolId})`);
+        }
+        // Special treatment for Halloween orange if Halloween mode is enabled
+        else if ((halloweenModeEnabled || combinedModeEnabled) && (currentPart.color === '#ff6600')) {
+            currentPart.element.setAttribute('stroke-width', '2.5');
+            currentPart.element.setAttribute('filter', `url(#orange-glow-${symbolId})`);
+        }
+        // Special treatment for Halloween purple if Halloween mode is enabled
+        else if ((halloweenModeEnabled || combinedModeEnabled) && (currentPart.color === '#6600cc')) {
+            currentPart.element.setAttribute('stroke-width', '2.5');
+            currentPart.element.setAttribute('filter', `url(#purple-glow-${symbolId})`);
+        }
+        // Special treatment for Christmas green if Christmas mode is enabled
+        else if ((christmasModeEnabled || combinedModeEnabled) && (currentPart.color === '#00ff00')) {
+            currentPart.element.setAttribute('stroke-width', '2.5');
+            currentPart.element.setAttribute('filter', `url(#green-glow-${symbolId})`);
+        }
+        // Special treatment for Christmas red if Christmas mode is enabled
+        else if ((christmasModeEnabled || combinedModeEnabled) && (currentPart.color === '#ff0000' || currentPart.color === '#E6252C')) {
+            currentPart.element.setAttribute('stroke-width', '2.5');
+            currentPart.element.setAttribute('filter', `url(#red-glow-${symbolId})`);
+        }
+        else {
+            currentPart.element.setAttribute('filter', `url(#glow-${symbolId})`);
+            currentPart.element.setAttribute('stroke-width', '2');
+        }
+
+        // Move to next part for next update
+        symbolData.activePartIndex = (symbolData.activePartIndex + 1) % svgParts.length;
+    });
+}
+
+// Start the global timer if it's not already running
+function startGlobalTimer() {
+    if (globalSymbolTimer === null) {
+        globalSymbolTimer = setInterval(updateAllSymbols, 500);
+    }
 }
 
 function createSymbol(type) {
@@ -367,6 +435,8 @@ function createSymbol(type) {
         symbol.remove();
         // Remove from active symbols array
         activeSymbols = activeSymbols.filter(s => s.id !== symbolId);
+        // Also remove from symbolsData array
+        symbolsData = symbolsData.filter(s => s.symbolId !== symbolId);
     });
 
     let parts = [];
@@ -605,6 +675,71 @@ function createSymbol(type) {
     `;
     defs.appendChild(activeFilter);
 
+    // Create blue-enhanced filter
+    const blueEnhancedFilter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+    blueEnhancedFilter.id = `blue-glow-${symbolId}`;
+    blueEnhancedFilter.innerHTML = `
+        <feGaussianBlur stdDeviation="5.5" result="coloredBlur"/>
+        <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+    `;
+    defs.appendChild(blueEnhancedFilter);
+
+    // Create orange-enhanced filter (for Halloween)
+    const orangeEnhancedFilter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+    orangeEnhancedFilter.id = `orange-glow-${symbolId}`;
+    orangeEnhancedFilter.innerHTML = `
+        <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+        <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+    `;
+    defs.appendChild(orangeEnhancedFilter);
+
+    // Create purple-enhanced filter (for Halloween)
+    const purpleEnhancedFilter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+    purpleEnhancedFilter.id = `purple-glow-${symbolId}`;
+    purpleEnhancedFilter.innerHTML = `
+        <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+        <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+    `;
+    defs.appendChild(purpleEnhancedFilter);
+
+    // Create green-enhanced filter (for Christmas)
+    const greenEnhancedFilter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+    greenEnhancedFilter.id = `green-glow-${symbolId}`;
+    greenEnhancedFilter.innerHTML = `
+        <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+        <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+    `;
+    defs.appendChild(greenEnhancedFilter);
+
+    // Create red-enhanced filter (for Christmas)
+    const redEnhancedFilter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+    redEnhancedFilter.id = `red-glow-${symbolId}`;
+    redEnhancedFilter.innerHTML = `
+        <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+        <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+    `;
+    defs.appendChild(redEnhancedFilter);
+
     symbol.appendChild(defs);
 
     let svgParts = parts.map((attrs, index) => {
@@ -623,161 +758,46 @@ function createSymbol(type) {
         return { element, color: colorSet[index % colorSet.length] };
     });
 
-    let activePartIndex = 0;
-    function updateActiveSegment() {
-        svgParts.forEach(({ element }) => {
-            // Reset to lamp texture for inactive segments
-            element.setAttribute('stroke', '#333333');
-            element.classList.remove('neon-glow');
-            element.classList.add('lamp-texture');
-            element.setAttribute('filter', `url(#inactive-filter-${symbolId})`);
-            element.setAttribute('stroke-width', '1');
-        });
+    // Add this symbol to the global symbolsData array
+    symbolsData.push({
+        symbolId,
+        svgParts,
+        activePartIndex: 0
+    });
 
-        const currentPart = svgParts[activePartIndex];
-        currentPart.element.setAttribute('stroke', currentPart.color);
-        currentPart.element.classList.add('neon-glow');
-        currentPart.element.classList.remove('lamp-texture');
-
-        // Special treatment for blue
-        if (currentPart.color === '#0000ff') {
-            // Slightly increased thickness for blue
-            currentPart.element.setAttribute('stroke-width', '2.5');
-
-            // Enhanced filter only for blue
-            const blueEnhancedFilter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
-            blueEnhancedFilter.id = `blue-glow-${symbolId}`;
-            blueEnhancedFilter.innerHTML = `
-                <feGaussianBlur stdDeviation="5.5" result="coloredBlur"/>
-                <feMerge>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="SourceGraphic"/>
-                </feMerge>
-            `;
-
-           // Add filter to defs if it doesn't exist yet
-           const defs = symbol.querySelector('defs');
-            if (!defs.querySelector(`#blue-glow-${symbolId}`)) {
-                defs.appendChild(blueEnhancedFilter);
-            }
-
-            currentPart.element.setAttribute('filter', `url(#blue-glow-${symbolId})`);
-        }
-        // Special treatment for Halloween orange if Halloween mode is enabled
-        else if ((halloweenModeEnabled || combinedModeEnabled) && (currentPart.color === '#ff6600')) {
-            // Enhanced orange for Halloween
-            currentPart.element.setAttribute('stroke-width', '2.5');
-
-            // Special filter for orange
-            const orangeEnhancedFilter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
-            orangeEnhancedFilter.id = `orange-glow-${symbolId}`;
-            orangeEnhancedFilter.innerHTML = `
-                <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
-                <feMerge>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="SourceGraphic"/>
-                </feMerge>
-            `;
-
-            // Add filter to defs if it doesn't exist yet
-            const defs = symbol.querySelector('defs');
-            if (!defs.querySelector(`#orange-glow-${symbolId}`)) {
-                defs.appendChild(orangeEnhancedFilter);
-            }
-
-            currentPart.element.setAttribute('filter', `url(#orange-glow-${symbolId})`);
-        }
-        // Special treatment for Halloween purple if Halloween mode is enabled
-        else if ((halloweenModeEnabled || combinedModeEnabled) && (currentPart.color === '#6600cc')) {
-            // Enhanced purple for Halloween
-            currentPart.element.setAttribute('stroke-width', '2.5');
-
-            // Special filter for purple
-            const purpleEnhancedFilter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
-            purpleEnhancedFilter.id = `purple-glow-${symbolId}`;
-            purpleEnhancedFilter.innerHTML = `
-                <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
-                <feMerge>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="SourceGraphic"/>
-                </feMerge>
-            `;
-
-            // Add filter to defs if it doesn't exist yet
-            const defs = symbol.querySelector('defs');
-            if (!defs.querySelector(`#purple-glow-${symbolId}`)) {
-                defs.appendChild(purpleEnhancedFilter);
-            }
-
-            currentPart.element.setAttribute('filter', `url(#purple-glow-${symbolId})`);
-        }
-        // Special treatment for Christmas green if Christmas mode is enabled
-        else if ((christmasModeEnabled || combinedModeEnabled) && (currentPart.color === '#00ff00')) {
-            // Enhanced green for Christmas
-            currentPart.element.setAttribute('stroke-width', '2.5');
-
-            // Special filter for green
-            const greenEnhancedFilter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
-            greenEnhancedFilter.id = `green-glow-${symbolId}`;
-            greenEnhancedFilter.innerHTML = `
-                <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
-                <feMerge>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="SourceGraphic"/>
-                </feMerge>
-            `;
-
-            // Add filter to defs if it doesn't exist yet
-            const defs = symbol.querySelector('defs');
-            if (!defs.querySelector(`#green-glow-${symbolId}`)) {
-                defs.appendChild(greenEnhancedFilter);
-            }
-
-            currentPart.element.setAttribute('filter', `url(#green-glow-${symbolId})`);
-        }
-        // Special treatment for Christmas red if Christmas mode is enabled
-        else if ((christmasModeEnabled || combinedModeEnabled) && (currentPart.color === '#ff0000' || currentPart.color === '#E6252C')) {
-            // Enhanced red for Christmas
-            currentPart.element.setAttribute('stroke-width', '2.5');
-
-            // Special filter for red
-            const redEnhancedFilter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
-            redEnhancedFilter.id = `red-glow-${symbolId}`;
-            redEnhancedFilter.innerHTML = `
-                <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
-                <feMerge>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="SourceGraphic"/>
-                </feMerge>
-            `;
-
-            // Add filter to defs if it doesn't exist yet
-            const defs = symbol.querySelector('defs');
-            if (!defs.querySelector(`#red-glow-${symbolId}`)) {
-                defs.appendChild(redEnhancedFilter);
-            }
-
-            currentPart.element.setAttribute('filter', `url(#red-glow-${symbolId})`);
-        }
-        else {
-            // Standard settings for other colors
-            currentPart.element.setAttribute('filter', `url(#glow-${symbolId})`);
-            currentPart.element.setAttribute('stroke-width', '2');
-        }
-
-        activePartIndex = (activePartIndex + 1) % svgParts.length;
-    }
-
-    updateActiveSegment();
-    setInterval(updateActiveSegment, 500);
+    // Make sure the global timer is running
+    startGlobalTimer();
 
     document.getElementById('container').appendChild(symbol);
 }
+
+// Reset and restart the global timer when visibility changes
+document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'visible') {
+        // Clear the existing timer
+        if (globalSymbolTimer !== null) {
+            clearInterval(globalSymbolTimer);
+            globalSymbolTimer = null;
+        }
+        
+        // Restart the timer to sync all symbols
+        startGlobalTimer();
+    }
+});
+
+// Create a window resize handler to resync the timer
+window.addEventListener('resize', function() {
+    // Clear the existing timer with a small delay to allow resize to complete
+    setTimeout(() => {
+        if (globalSymbolTimer !== null) {
+            clearInterval(globalSymbolTimer);
+            globalSymbolTimer = null;
+        }
+        
+        // Restart the timer to sync all symbols
+        startGlobalTimer();
+    }, 100);
+});
 
 function spawnSymbols() {
     const symbolTypes = ['cross', 'circle', 'triangle', 'square'];
@@ -2262,7 +2282,7 @@ function setCombinedLightMode(mode) {
     document.getElementById('combined-light-label').textContent = `Light Mode: ${mode.charAt(0).toUpperCase() + mode.slice(1)}`;
     
     // Clear previous animations
-    clearCombinedLightIntervals();
+clearCombinedLightIntervals();
     clearLightIntervals();
     clearHalloweenLightIntervals();
     
@@ -2703,6 +2723,7 @@ function applyHauntedMode(christmasLights, halloweenLights) {
     
     combinedLightIntervals.push(interval);
 }
+
 // Light mode slider
 document.getElementById('light-mode-slider').addEventListener('input', function () {
     // Get mode based on slider value
@@ -2732,6 +2753,7 @@ document.getElementById('combined-light-slider').addEventListener('input', funct
     // Apply selected mode
     setCombinedLightMode(selectedMode);
 });
+
 // Add event listener to Christmas toggle button
 document.getElementById('christmas-toggle').addEventListener('click', toggleChristmasMode);
 
@@ -2740,7 +2762,36 @@ document.getElementById('halloween-toggle').addEventListener('click', toggleHall
 
 // Add event listener to combined toggle button
 document.getElementById('combined-toggle').addEventListener('click', toggleCombinedMode);
+
 // Initialize
 window.addEventListener('load', function () {
     spawnSymbols();
+});
+
+// Reset and restart the global timer when visibility changes
+document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'visible') {
+        // Clear the existing timer
+        if (globalSymbolTimer !== null) {
+            clearInterval(globalSymbolTimer);
+            globalSymbolTimer = null;
+        }
+        
+        // Restart the timer to sync all symbols
+        startGlobalTimer();
+    }
+});
+
+// Create a window resize handler to resync the timer
+window.addEventListener('resize', function() {
+    // Clear the existing timer with a small delay to allow resize to complete
+    setTimeout(() => {
+        if (globalSymbolTimer !== null) {
+            clearInterval(globalSymbolTimer);
+            globalSymbolTimer = null;
+        }
+        
+        // Restart the timer to sync all symbols
+        startGlobalTimer();
+    }, 100);
 });
