@@ -1,195 +1,26 @@
-// PlayStation Theme Script - Optimized Version
+// Flags to track which mode is enabled
+let christmasModeEnabled = false;
+let halloweenModeEnabled = false;
+let combinedModeEnabled = false;
 
-// Performance optimization: Cache frequently accessed DOM elements
-const domCache = {
-    container: document.getElementById('container'),
-    glow: {
-        overlay: document.getElementById('glow-overlay')
-    },
-    christmas: {
-        toggle: document.getElementById('christmas-toggle'),
-        lightsContainer: document.getElementById('lights-container'),
-        lightCord: document.querySelector('.light-cord'),
-        miniTree: document.querySelector('.mini-tree'),
-        hat: document.querySelector('.christmas-hat'),
-        lightModeControl: document.getElementById('light-mode-control'),
-        lightModeLabel: document.getElementById('light-mode-label'),
-        lightModeSlider: document.getElementById('light-mode-slider')
-    },
-    halloween: {
-        toggle: document.getElementById('halloween-toggle'),
-        lightsContainer: document.getElementById('halloween-lights-container'),
-        lightCord: document.querySelector('.halloween-light-cord'),
-        pumpkinPatch: document.getElementById('pumpkin-patch'),
-        witchHat: document.querySelector('.witch-hat'),
-        lightModeControl: document.getElementById('halloween-light-control'),
-        lightModeLabel: document.getElementById('halloween-light-label'),
-        lightModeSlider: document.getElementById('halloween-light-slider'),
-        ghosts: document.querySelectorAll('.ghost'),
-        spiderWeb: document.getElementById('spider-web'),
-        fogEffect: document.getElementById('fog-effect'),
-        thunderFlash: document.getElementById('thunder-flash')
-    },
-    combined: {
-        toggle: document.getElementById('combined-toggle'),
-        lightModeControl: document.getElementById('combined-light-control'),
-        lightModeLabel: document.getElementById('combined-light-label'),
-        lightModeSlider: document.getElementById('combined-light-slider'),
-        dualHat: document.querySelector('.dual-hat'),
-        corner: document.getElementById('combined-corner')
-    },
-    clock: document.getElementById('clock'),
-    youtubePlayer: document.getElementById('youtubePlayer'),
-    youtubePlayer2: document.getElementById('youtubePlayer2')
-};
+// Light mode tracking
+let currentLightMode = 'random';
+const lightModes = ['random', 'sequential', 'alternating', 'wave', 'chasing', 'colorgroups', 'heartbeat', 'morse', 'rainbow', 'cascade'];
+let lightIntervals = []; // Store intervals to clear them when changing modes
 
-// State management - centralize all state variables
-const state = {
-    modes: {
-        christmas: false,
-        halloween: false,
-        combined: false
-    },
-    lights: {
-        christmas: {
-            mode: 'random',
-            modes: ['random', 'sequential', 'alternating', 'wave', 'chasing', 'colorgroups', 'heartbeat', 'morse', 'rainbow', 'cascade'],
-            intervals: []
-        },
-        halloween: {
-            mode: 'spooky',
-            modes: ['spooky', 'flicker', 'pulse', 'thunder', 'colorshift', 'witch', 'zombie'],
-            intervals: []
-        },
-        combined: {
-            mode: 'fusion',
-            modes: ['fusion', 'alternating', 'dualtone', 'chaotic', 'seasonal', 'festive', 'spookymas', 'candycane', 'haunted'],
-            intervals: []
-        }
-    },
-    glow: {
-        active: false,
-        interval: null
-    },
-    youtube: {
-        player1Ready: false,
-        player2Ready: false
-    },
-    symbols: {
-        active: [],
-        data: [],
-        timer: null,
-        maxSymbols: 30, // Performance: Limit max symbols on screen
-        minSpacing: 200
-    }
-};
+// Halloween light modes
+let currentHalloweenLightMode = 'spooky';
+const halloweenLightModes = ['spooky', 'flicker', 'pulse', 'thunder', 'colorshift', 'witch', 'zombie'];
+let halloweenLightIntervals = [];
 
-// Colors configuration
-const colors = {
-    neon: [
-        '#ff00ff', // Magenta
-        '#00ffff', // Cyan
-        '#ffff00', // Yellow
-        '#00ff00', // Lime
-        '#ff0000', // Red
-        '#0000ff', // Blue
-        '#ff8000', // Orange
-        '#ff00cc', // Pink
-        '#00ff9c'  // Aqua
-    ],
-    christmas: [
-        '#ff0000', // Red
-        '#00ff00', // Green
-        '#FFD700', // Gold
-        '#ffffff', // White
-        '#E6252C'  // Christmas Red
-    ],
-    halloween: [
-        '#ff6600', // Orange
-        '#6600cc', // Purple
-        '#00cc00', // Toxic green
-        '#ff0000', // Blood red
-        '#66ccff', // Ghost blue
-        '#ffcc00'  // Pumpkin gold
-    ]
-};
-
-// Optimization: Pre-generate SVG filter templates
-const svgFilterTemplates = {
-    inactive: id => `
-        <filter id="inactive-filter-${id}">
-            <feGaussianBlur stdDeviation="0.3" result="blur"/>
-            <feSpecularLighting result="specOut" specularExponent="20" lighting-color="#ffffff">
-                <fePointLight x="50" y="50" z="300"/>
-            </feSpecularLighting>
-            <feComposite in="SourceGraphic" in2="specOut" operator="arithmetic" k1="0" k2="0.3" k3="0.3" k4="0"/>
-        </filter>
-    `,
-    glow: id => `
-        <filter id="glow-${id}">
-            <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
-            <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-        </filter>
-    `,
-    blueGlow: id => `
-        <filter id="blue-glow-${id}">
-            <feGaussianBlur stdDeviation="5.5" result="coloredBlur"/>
-            <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-        </filter>
-    `,
-    orangeGlow: id => `
-        <filter id="orange-glow-${id}">
-            <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
-            <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-        </filter>
-    `,
-    purpleGlow: id => `
-        <filter id="purple-glow-${id}">
-            <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
-            <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-        </filter>
-    `,
-    greenGlow: id => `
-        <filter id="green-glow-${id}">
-            <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
-            <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-        </filter>
-    `,
-    redGlow: id => `
-        <filter id="red-glow-${id}">
-            <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
-            <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-        </filter>
-    `
-};
-
-// Performance optimization: Pre-hide YouTube player elements
+// Combined light modes
+let currentCombinedLightMode = 'fusion';
+const combinedLightModes = ['fusion', 'alternating', 'dualtone', 'chaotic', 'seasonal', 'festive', 'spookymas', 'candycane', 'haunted'];
+let combinedLightIntervals = [];
+// Add this to the beginning of your script:
+// Pre-hide YouTube player elements to prevent flashing
 document.addEventListener('DOMContentLoaded', function() {
-    // Create a style element to hide YouTube players
+    // Create a style element
     const style = document.createElement('style');
     style.innerHTML = `
         #youtubePlayer, #youtubePlayer2, iframe[src*="youtube.com"] {
@@ -207,104 +38,110 @@ document.addEventListener('DOMContentLoaded', function() {
     document.head.appendChild(style);
     
     // Pre-create player containers
-    createOrStyleElement('youtubePlayer', 'div', 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;visibility:hidden;pointer-events:none;z-index:-9999;');
-    createOrStyleElement('youtubePlayer2', 'div', 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;visibility:hidden;pointer-events:none;z-index:-9999;');
+    const playerDiv = document.getElementById('youtubePlayer') || document.createElement('div');
+    playerDiv.id = 'youtubePlayer';
+    playerDiv.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;visibility:hidden;pointer-events:none;z-index:-9999;';
     
-    // Initialize the clock
-    updateClock();
-    setInterval(updateClock, 1000);
-
-    // Start auto-toggling glow
-    autoToggleGlow();
+    const player2Div = document.getElementById('youtubePlayer2') || document.createElement('div');
+    player2Div.id = 'youtubePlayer2';
+    player2Div.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;visibility:hidden;pointer-events:none;z-index:-9999;';
+    
+    if (!document.getElementById('youtubePlayer')) document.body.appendChild(playerDiv);
+    if (!document.getElementById('youtubePlayer2')) document.body.appendChild(player2Div);
 });
-
-// Helper function to create or style an element
-function createOrStyleElement(id, tagName, styleString) {
-    let element = document.getElementById(id);
-    if (!element) {
-        element = document.createElement(tagName);
-        element.id = id;
-        document.body.appendChild(element);
-    }
-    element.style.cssText = styleString;
-    return element;
-}
-
-// Hide YouTube players completely
+// Add this near the beginning of your script.js file:
+// Ensure YouTube players are completely hidden
 function hideYouTubePlayers() {
-    ['youtubePlayer', 'youtubePlayer2'].forEach(id => {
-        const player = document.getElementById(id);
-        if (player) {
-            player.style.cssText = 'position:absolute;width:1px;height:1px;opacity:0;visibility:hidden;pointer-events:none;z-index:-1;';
-        }
-    });
-}
-
-// Update clock display
-function updateClock() {
-    const now = new Date();
-    const hours = now.getHours();
-    const minutes = now.getMinutes().toString().padStart(2, '0');
-    const period = hours >= 12 ? "PM" : "AM";
-    const displayHours = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
-    domCache.clock.textContent = displayHours + ':' + minutes + " " + period;
-}
-
-// PERFORMANCE OPTIMIZATION: Use requestAnimationFrame for animations
-function autoToggleGlow() {
-    state.glow.active = !state.glow.active;
-    domCache.glow.overlay.style.opacity = state.glow.active ? '1' : '0';
+    // Style for player1
+    const player1Div = document.getElementById('youtubePlayer');
+    if (player1Div) {
+        player1Div.style.position = 'absolute';
+        player1Div.style.width = '1px';
+        player1Div.style.height = '1px';
+        player1Div.style.opacity = '0';
+        player1Div.style.visibility = 'hidden';
+        player1Div.style.pointerEvents = 'none';
+        player1Div.style.zIndex = '-1';
+    }
     
-    // Schedule next toggle using timeout and requestAnimationFrame
-    state.glow.interval = setTimeout(() => {
-        requestAnimationFrame(autoToggleGlow);
-    }, 1500);
+    // Style for player2
+    const player2Div = document.getElementById('youtubePlayer2');
+    if (player2Div) {
+        player2Div.style.position = 'absolute';
+        player2Div.style.width = '1px';
+        player2Div.style.height = '1px';
+        player2Div.style.opacity = '0';
+        player2Div.style.visibility = 'hidden';
+        player2Div.style.pointerEvents = 'none';
+        player2Div.style.zIndex = '-1';
+    }
 }
-
-// Keyboard event listeners for controls
-document.addEventListener('keydown', function(event) {
-    // Music control
+// Keyboard event listeners for music control
+document.addEventListener('keydown', function (event) {
     if (event.key === '4') {
-        if (state.youtube.player1Ready && window.player) {
-            if (state.youtube.player2Ready && window.player2) {
-                window.player2.pauseVideo();
+        if (playerReady && player) {
+            // Stop player2 if it's playing
+            if (player2Ready && player2) {
+                player2.pauseVideo();
             }
-            window.player.playVideo();
+            player.playVideo();
             console.log("Playing main music...");
         }
-    } else if (event.key === 's' || event.key === 'S') {
-        if (state.youtube.player1Ready && window.player) {
-            window.player.pauseVideo();
+    }
+    if (event.key === 's' || event.key === 'S') {
+        if (playerReady && player) {
+            player.pauseVideo();
         }
-        if (state.youtube.player2Ready && window.player2) {
-            window.player2.pauseVideo();
+        if (player2Ready && player2) {
+            player2.pauseVideo();
         }
         console.log("Music stopped.");
-    } else if (event.key === '5') {
-        if (state.youtube.player2Ready && window.player2) {
-            if (state.youtube.player1Ready && window.player) {
-                window.player.pauseVideo();
+    }
+    if (event.key === '5') {
+        if (player2Ready && player2) {
+            // Stop player1 if it's playing
+            if (playerReady && player) {
+                player.pauseVideo();
             }
-            window.player2.playVideo();
+            player2.playVideo();
             console.log("Playing alternate music...");
         }
-    } else if (event.key === 'g' || event.key === 'G') {
-        state.glow.active = !state.glow.active;
-        domCache.glow.overlay.style.opacity = state.glow.active ? '1' : '0';
     }
 });
+let isGlowActive = false;
 
-// YouTube player initialization
-window.onYouTubeIframeAPIReady = function() {
+document.addEventListener('keydown', function (event) {
+    if (event.key === 'g' || event.key === 'G') {
+        const glowOverlay = document.getElementById('glow-overlay');
+        isGlowActive = !isGlowActive;
+        glowOverlay.style.opacity = isGlowActive ? '1' : '0';
+    }
+});
+function autoToggleGlow() {
+    const glowOverlay = document.getElementById('glow-overlay');
+    isGlowActive = !isGlowActive;
+    glowOverlay.style.opacity = isGlowActive ? '1' : '0';
+}
+
+// Start auto-toggling glow every 1.5 seconds
+setInterval(autoToggleGlow, 1500);
+
+// YouTube player code
+let player;
+let playerReady = false;
+let player2;
+let player2Ready = false;
+
+function onYouTubeIframeAPIReady() {
     // First player (original)
-    window.player = new YT.Player('youtubePlayer', {
+    player = new YT.Player('youtubePlayer', {
         width: '1',
         height: '1',
-        videoId: 'sUOzplfB9ps',
+        videoId: 'sUOzplfB9ps', // Fix: Replace this with a valid YouTube video ID
         playerVars: {
             'autoplay': 0,
             'loop': 1,
-            'playlist': 'sUOzplfB9ps',
+            'playlist': 'sUOzplfB9ps', // Fix: Match the playlist with the video ID
             'controls': 0,
             'showinfo': 0,
             'rel': 0,
@@ -318,10 +155,10 @@ window.onYouTubeIframeAPIReady = function() {
     });
     
     // Second player (new video)
-    window.player2 = new YT.Player('youtubePlayer2', {
+    player2 = new YT.Player('youtubePlayer2', {
         width: '1',
         height: '1',
-        videoId: 'hxpuusU8sTM',
+        videoId: 'hxpuusU8sTM', // This one seems valid
         playerVars: {
             'autoplay': 0,
             'loop': 1,
@@ -337,84 +174,133 @@ window.onYouTubeIframeAPIReady = function() {
             'onStateChange': onPlayer2StateChange
         }
     });
-};
 
-function onPlayerReady(event) {
-    state.youtube.player1Ready = true;
-    hidePlayerIframe(event.target);
-    console.log("YouTube player is ready. Press '4' to start playing.");
-}
-
-function onPlayerStateChange(event) {
-    if (event.data === YT.PlayerState.ENDED) {
-        window.player.playVideo();
+    // Define the callback functions within this function to ensure they're in scope
+    function onPlayerReady(event) {
+        playerReady = true;
+        // Ensure player is hidden
+        if (player.getIframe) {
+            const iframe = player.getIframe();
+            if (iframe) {
+                iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;visibility:hidden;pointer-events:none;z-index:-9999;';
+            }
+        }
+        console.log("YouTube player is ready. Press '4' to start playing.");
     }
-}
 
-function onPlayer2Ready(event) {
-    state.youtube.player2Ready = true;
-    hidePlayerIframe(event.target);
-    console.log("Second YouTube player is ready. Press '5' to start playing.");
-}
-
-function onPlayer2StateChange(event) {
-    if (event.data === YT.PlayerState.ENDED) {
-        window.player2.playVideo();
-    }
-}
-
-function hidePlayerIframe(player) {
-    if (player.getIframe) {
-        const iframe = player.getIframe();
-        if (iframe) {
-            iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;visibility:hidden;pointer-events:none;z-index:-9999;';
+    function onPlayerStateChange(event) {
+        // If video ends, restart it
+        if (event.data === YT.PlayerState.ENDED) {
+            player.playVideo();
         }
     }
-}
 
-// Helper function to get random colors
+    function onPlayer2Ready(event) {
+        player2Ready = true;
+        // Ensure player is hidden
+        if (player2.getIframe) {
+            const iframe = player2.getIframe();
+            if (iframe) {
+                iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;visibility:hidden;pointer-events:none;z-index:-9999;';
+            }
+        }
+        console.log("Second YouTube player is ready. Press '5' to start playing.");
+    }
+
+    function onPlayer2StateChange(event) {
+        // If video ends, restart it
+        if (event.data === YT.PlayerState.ENDED) {
+            player2.playVideo();
+        }
+    }
+} 
+
+// Ultra-bright neon colors for maximum intensity
+const neonColors = [
+    '#ff00ff', // Magenta
+    '#00ffff', // Cyan
+    '#ffff00', // Yellow
+    '#00ff00', // Lime
+    '#ff0000', // Red
+    '#0000ff', // Blue
+    '#ff8000', // Orange
+    '#ff00cc', // Pink
+    '#00ff9c'  // Aqua
+];
+
+// Christmas colors added to the mix
+const christmasColors = [
+    '#ff0000', // Red
+    '#00ff00', // Green
+    '#FFD700', // Gold
+    '#ffffff', // White
+    '#E6252C'  // Christmas Red
+];
+
+// Halloween colors
+const halloweenColors = [
+    '#ff6600', // Orange
+    '#6600cc', // Purple
+    '#00cc00', // Toxic green
+    '#ff0000', // Blood red
+    '#66ccff', // Ghost blue
+    '#ffcc00'  // Pumpkin gold
+];
+
+// Array to keep track of all active symbols and their positions
+let activeSymbols = [];
+// Minimum spacing between symbols in pixels
+const MIN_SPACING = 200;
+
+// Global array to store all active symbols' data for synchronized animation
+let symbolsData = [];
+
+// Global timer to synchronize all symbols
+let globalSymbolTimer = null;
+
+function updateClock() {
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const period = hours >= 12 ? "PM" : "AM";
+    const displayHours = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
+    document.getElementById('clock').textContent = displayHours + ':' + minutes + " " + period;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
 function getRandomColors(count) {
-    let colorsToUse = colors.neon;
+    // Choose colors based on active theme
+    let colorsToUse = neonColors;
 
-    if (state.modes.christmas) {
-        colorsToUse = [...colors.neon, ...colors.christmas];
-    } else if (state.modes.halloween) {
-        colorsToUse = [...colors.neon, ...colors.halloween];
-    } else if (state.modes.combined) {
-        colorsToUse = [...colors.neon, ...colors.christmas, ...colors.halloween];
+    if (christmasModeEnabled) {
+        colorsToUse = [...neonColors, ...christmasColors];
+    } else if (halloweenModeEnabled) {
+        colorsToUse = [...neonColors, ...halloweenColors];
+    } else if (combinedModeEnabled) {
+        colorsToUse = [...neonColors, ...christmasColors, ...halloweenColors];
     }
 
-    // Performance optimization: Use Set for unique colors
-    const usedIndices = new Set();
-    const selectedColors = [];
-    
-    while (selectedColors.length < count && usedIndices.size < colorsToUse.length) {
-        const randomIndex = Math.floor(Math.random() * colorsToUse.length);
-        if (!usedIndices.has(randomIndex)) {
-            usedIndices.add(randomIndex);
-            selectedColors.push(colorsToUse[randomIndex]);
+    let selectedColors = [];
+    while (selectedColors.length < count) {
+        let color = colorsToUse[Math.floor(Math.random() * colorsToUse.length)];
+        if (!selectedColors.includes(color)) {
+            selectedColors.push(color);
         }
     }
-    
-    // Fill remaining if needed
-    while (selectedColors.length < count) {
-        selectedColors.push(colorsToUse[Math.floor(Math.random() * colorsToUse.length)]);
-    }
-    
     return selectedColors;
 }
 
-// Calculate distance between two points
+// Calculate distance between two points (x1,y1) and (x2,y2)
 function getDistance(x1, y1, x2, y2) {
     return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
 }
 
 // Update all symbols' active segments simultaneously
 function updateAllSymbols() {
-    state.symbols.data.forEach(symbolData => {
-        const { svgParts, symbolId } = symbolData;
+    symbolsData.forEach(symbolData => {
+        const { svgParts, activePartIndex, symbolId } = symbolData;
         
-        // Performance optimization: Batch DOM operations
         // Reset all parts of this symbol
         svgParts.forEach(({ element }) => {
             element.setAttribute('stroke', '#333333');
@@ -426,87 +312,78 @@ function updateAllSymbols() {
 
         // Activate current part
         const currentPart = svgParts[symbolData.activePartIndex];
-        const currentColor = currentPart.color;
-        
-        // Apply appropriate filter based on color and mode
-        let filter = `url(#glow-${symbolId})`;
-        let strokeWidth = '2';
-        
-        if (currentColor === '#0000ff') {
-            filter = `url(#blue-glow-${symbolId})`;
-            strokeWidth = '2.5';
-        } else if ((state.modes.halloween || state.modes.combined) && currentColor === '#ff6600') {
-            filter = `url(#orange-glow-${symbolId})`;
-            strokeWidth = '2.5';
-        } else if ((state.modes.halloween || state.modes.combined) && currentColor === '#6600cc') {
-            filter = `url(#purple-glow-${symbolId})`;
-            strokeWidth = '2.5';
-        } else if ((state.modes.christmas || state.modes.combined) && currentColor === '#00ff00') {
-            filter = `url(#green-glow-${symbolId})`;
-            strokeWidth = '2.5';
-        } else if ((state.modes.christmas || state.modes.combined) && 
-                   (currentColor === '#ff0000' || currentColor === '#E6252C')) {
-            filter = `url(#red-glow-${symbolId})`;
-            strokeWidth = '2.5';
-        }
-        
-        // Apply all changes at once to minimize DOM operations
-        currentPart.element.setAttribute('stroke', currentColor);
+        currentPart.element.setAttribute('stroke', currentPart.color);
         currentPart.element.classList.add('neon-glow');
         currentPart.element.classList.remove('lamp-texture');
-        currentPart.element.setAttribute('filter', filter);
-        currentPart.element.setAttribute('stroke-width', strokeWidth);
+
+        // Special treatment for blue
+        if (currentPart.color === '#0000ff') {
+            currentPart.element.setAttribute('stroke-width', '2.5');
+            currentPart.element.setAttribute('filter', `url(#blue-glow-${symbolId})`);
+        }
+        // Special treatment for Halloween orange if Halloween mode is enabled
+        else if ((halloweenModeEnabled || combinedModeEnabled) && (currentPart.color === '#ff6600')) {
+            currentPart.element.setAttribute('stroke-width', '2.5');
+            currentPart.element.setAttribute('filter', `url(#orange-glow-${symbolId})`);
+        }
+        // Special treatment for Halloween purple if Halloween mode is enabled
+        else if ((halloweenModeEnabled || combinedModeEnabled) && (currentPart.color === '#6600cc')) {
+            currentPart.element.setAttribute('stroke-width', '2.5');
+            currentPart.element.setAttribute('filter', `url(#purple-glow-${symbolId})`);
+        }
+        // Special treatment for Christmas green if Christmas mode is enabled
+        else if ((christmasModeEnabled || combinedModeEnabled) && (currentPart.color === '#00ff00')) {
+            currentPart.element.setAttribute('stroke-width', '2.5');
+            currentPart.element.setAttribute('filter', `url(#green-glow-${symbolId})`);
+        }
+        // Special treatment for Christmas red if Christmas mode is enabled
+        else if ((christmasModeEnabled || combinedModeEnabled) && (currentPart.color === '#ff0000' || currentPart.color === '#E6252C')) {
+            currentPart.element.setAttribute('stroke-width', '2.5');
+            currentPart.element.setAttribute('filter', `url(#red-glow-${symbolId})`);
+        }
+        else {
+            currentPart.element.setAttribute('filter', `url(#glow-${symbolId})`);
+            currentPart.element.setAttribute('stroke-width', '2');
+        }
 
         // Move to next part for next update
         symbolData.activePartIndex = (symbolData.activePartIndex + 1) % svgParts.length;
     });
-    
-    // Schedule next update using setTimeout and requestAnimationFrame
-    if (state.symbols.data.length > 0) {
-        state.symbols.timer = setTimeout(() => {
-            requestAnimationFrame(updateAllSymbols);
-        }, 500);
-    }
 }
 
 // Start the global timer if it's not already running
 function startGlobalTimer() {
-    if (state.symbols.timer === null && state.symbols.data.length > 0) {
-        requestAnimationFrame(updateAllSymbols);
+    if (globalSymbolTimer === null) {
+        globalSymbolTimer = setInterval(updateAllSymbols, 500);
     }
 }
 
-// Create a symbol with improved performance
 function createSymbol(type) {
-    // Performance optimization: Limit maximum number of active symbols
-    if (state.symbols.active.length >= state.symbols.maxSymbols) {
-        return;
-    }
-
-    const containerWidth = domCache.container.clientWidth;
-    const containerHeight = domCache.container.clientHeight;
+    const container = document.getElementById('container');
+    const containerHeight = container.clientHeight;
+    const containerWidth = container.clientWidth;
 
     // Generate a random position
     // Keep positions within 5-85% range to avoid edges
     let topPosition = 5 + Math.random() * 80;
     let attempts = 0;
-    const maxAttempts = 5; // Reduced max attempts for performance
+    const maxAttempts = 10;
 
     // Try to find a position that's not too close to other symbols near the right edge
     while (attempts < maxAttempts) {
         let tooClose = false;
 
-        // Performance optimization: Use a more efficient collision detection algorithm
-        for (let i = 0; i < state.symbols.active.length; i++) {
-            const symbolInfo = state.symbols.active[i];
+        // Check against existing symbols that are near the right edge
+        for (let symbolInfo of activeSymbols) {
+            const symbolTopPercentage = symbolInfo.topPercentage;
             const symbolRightPosition = symbolInfo.rightPosition || containerWidth;
-            
+
             // Only check symbols that are near the right edge
             if (symbolRightPosition > containerWidth - 300) {
-                const symbolTopPixels = (containerHeight * symbolInfo.topPercentage) / 100;
+                const symbolTopPixels = (containerHeight * symbolTopPercentage) / 100;
                 const posTopPixels = (containerHeight * topPosition) / 100;
 
-                if (Math.abs(symbolTopPixels - posTopPixels) < state.symbols.minSpacing) {
+                if (Math.abs(symbolTopPixels - posTopPixels) < MIN_SPACING) {
                     tooClose = true;
                     break;
                 }
@@ -523,61 +400,56 @@ function createSymbol(type) {
         attempts++;
     }
 
-    // Create SVG element using a more efficient approach
     const symbol = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    const symbolId = 'symbol-' + Math.floor(Math.random() * 1000000);
-    
-    // Set attributes in one batch
-    symbol.id = symbolId;
-    symbol.className = 'ps-symbol';
+    symbol.classList.add('ps-symbol');
     symbol.setAttribute('viewBox', '0 0 24 24');
     symbol.style.top = topPosition + '%';
 
     // Store information about this symbol
-    state.symbols.active.push({
+    const symbolId = 'symbol-' + Math.random().toString(36).substr(2, 9);
+    symbol.id = symbolId;
+
+    // Add to active symbols list
+    activeSymbols.push({
         id: symbolId,
         topPercentage: topPosition,
         rightPosition: containerWidth
     });
 
-    // Use requestAnimationFrame for position updates
-    function updateSymbolPosition() {
+    // Update symbol positions during animation
+    const updateSymbolPosition = () => {
         const rect = symbol.getBoundingClientRect();
-        
-        // Find and update symbol position
-        const symbolIndex = state.symbols.active.findIndex(s => s.id === symbolId);
-        if (symbolIndex !== -1) {
-            state.symbols.active[symbolIndex].rightPosition = rect.right;
+        const symbolInfo = activeSymbols.find(s => s.id === symbolId);
+        if (symbolInfo) {
+            symbolInfo.rightPosition = rect.right;
         }
 
         if (rect.right > 0) {
             requestAnimationFrame(updateSymbolPosition);
         }
-    }
+    };
     requestAnimationFrame(updateSymbolPosition);
 
     // Set up removal when animation ends
     symbol.addEventListener('animationend', () => {
         symbol.remove();
-        
         // Remove from active symbols array
-        state.symbols.active = state.symbols.active.filter(s => s.id !== symbolId);
-        
-        // Remove from symbolsData array
-        state.symbols.data = state.symbols.data.filter(s => s.symbolId !== symbolId);
+        activeSymbols = activeSymbols.filter(s => s.id !== symbolId);
+        // Also remove from symbolsData array
+        symbolsData = symbolsData.filter(s => s.symbolId !== symbolId);
     });
 
     let parts = [];
     let colorSet = [];
 
     // Choose between normal, Christmas, Halloween or combined shapes based on mode
-    if (state.modes.combined && Math.random() > 0.6) {
+    if (combinedModeEnabled && Math.random() > 0.6) {
         // Combined themed symbols (mix of both themes)
         const combinedType = ['hybrid', 'mixed-icon', 'dual-color'][Math.floor(Math.random() * 3)];
         
         switch (combinedType) {
             case 'hybrid': // Christmas tree with pumpkin decorations
-                colorSet = [...getRandomColors(2), colors.halloween[0]]; // Mix of colors
+                colorSet = [...getRandomColors(2), halloweenColors[0]]; // Mix of colors
                 parts = [
                     { x1: '12', y1: '4', x2: '12', y2: '20' }, // Tree trunk
                     { d: 'M12 4 L6 10 L18 10 Z' }, // Top part
@@ -585,7 +457,7 @@ function createSymbol(type) {
                 ];
                 break;
             case 'mixed-icon': // Pumpkin with santa hat
-                colorSet = [colors.halloween[0], colors.christmas[0], colors.christmas[3]]; // Orange, red, white
+                colorSet = [halloweenColors[0], christmasColors[0], christmasColors[3]]; // Orange, red, white
                 parts = [
                     { d: 'M7 10 A5 7 0 0 0 17 10 L15 17 L9 17 Z' }, // Pumpkin body
                     { d: 'M7 6 L12 3 L17 6' }, // Santa hat
@@ -593,7 +465,7 @@ function createSymbol(type) {
                 ];
                 break;
             case 'dual-color': // PlayStation shapes in mixed Christmas/Halloween colors
-                colorSet = [colors.christmas[0], colors.halloween[0], colors.christmas[1], colors.halloween[1]];
+                colorSet = [christmasColors[0], halloweenColors[0], christmasColors[1], halloweenColors[1]];
                 
                 // Use a PlayStation shape but with mixed colors
                 const psShape = ['cross', 'circle', 'triangle', 'square'][Math.floor(Math.random() * 4)];
@@ -631,13 +503,13 @@ function createSymbol(type) {
                 }
                 break;
         }
-    } else if (state.modes.halloween && Math.random() > 0.5) {
+    } else if (halloweenModeEnabled && Math.random() > 0.5) {
         // Halloween themed symbols
         const halloweenType = ['pumpkin', 'ghost', 'bat', 'witch-hat', 'skull'][Math.floor(Math.random() * 5)];
-        
+
         switch (halloweenType) {
             case 'pumpkin': // Jack-o'-lantern
-                colorSet = [colors.halloween[0]]; // Orange
+                colorSet = [halloweenColors[0]]; // Orange
                 parts = [
                     { d: 'M7 10 A5 7 0 0 0 17 10 L15 17 L9 17 Z' }, // Pumpkin body
                     { d: 'M12 5 L12 8' }, // Stem
@@ -677,7 +549,7 @@ function createSymbol(type) {
                 ];
                 break;
         }
-    } else if (state.modes.christmas && Math.random() > 0.5) {
+    } else if (christmasModeEnabled && Math.random() > 0.5) {
         // Christmas themed symbols
         const christmasType = ['tree', 'snowflake', 'gift'][Math.floor(Math.random() * 3)];
 
@@ -746,33 +618,135 @@ function createSymbol(type) {
                 break;
         }
     }
-    
-    // Performance optimization: Create SVG defs using templates and innerHTML
+
+    // Add defs for gradients
     const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-    
-    // Combine all SVG filter templates
-    defs.innerHTML = `
-        ${svgFilterTemplates.inactive(symbolId)}
-        ${svgFilterTemplates.glow(symbolId)}
-        ${svgFilterTemplates.blueGlow(symbolId)}
-        ${svgFilterTemplates.orangeGlow(symbolId)}
-        ${svgFilterTemplates.purpleGlow(symbolId)}
-        ${svgFilterTemplates.greenGlow(symbolId)}
-        ${svgFilterTemplates.redGlow(symbolId)}
+
+    // Create lamp-like gradient
+    const lampGradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+    lampGradient.id = `lamp-gradient-${symbolId}`;
+    lampGradient.setAttribute('gradientUnits', 'userSpaceOnUse');
+    lampGradient.setAttribute('x1', '0%');
+    lampGradient.setAttribute('y1', '0%');
+    lampGradient.setAttribute('x2', '100%');
+    lampGradient.setAttribute('y2', '100%');
+
+    // Create gradient stops for a glass/lamp-like appearance
+    const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    stop1.setAttribute('offset', '0%');
+    stop1.setAttribute('stop-color', '#666666');
+
+    const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    stop2.setAttribute('offset', '50%');
+    stop2.setAttribute('stop-color', '#444444');
+
+    const stop3 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    stop3.setAttribute('offset', '100%');
+    stop3.setAttribute('stop-color', '#222222');
+
+    lampGradient.appendChild(stop1);
+    lampGradient.appendChild(stop2);
+    lampGradient.appendChild(stop3);
+
+    defs.appendChild(lampGradient);
+
+    // Create advanced filter for inactive segments
+    const inactiveFilter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+    inactiveFilter.id = `inactive-filter-${symbolId}`;
+    inactiveFilter.innerHTML = `
+        <feGaussianBlur stdDeviation="0.3" result="blur"/>
+        <feSpecularLighting result="specOut" specularExponent="20" lighting-color="#ffffff">
+            <fePointLight x="50" y="50" z="300"/>
+        </feSpecularLighting>
+        <feComposite in="SourceGraphic" in2="specOut" operator="arithmetic" k1="0" k2="0.3" k3="0.3" k4="0"/>
     `;
-    
+    defs.appendChild(inactiveFilter);
+
+    // Create glow filter for active segments
+    const activeFilter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+    activeFilter.id = `glow-${symbolId}`;
+    activeFilter.innerHTML = `
+        <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
+        <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+    `;
+    defs.appendChild(activeFilter);
+
+    // Create blue-enhanced filter
+    const blueEnhancedFilter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+    blueEnhancedFilter.id = `blue-glow-${symbolId}`;
+    blueEnhancedFilter.innerHTML = `
+        <feGaussianBlur stdDeviation="5.5" result="coloredBlur"/>
+        <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+    `;
+    defs.appendChild(blueEnhancedFilter);
+
+    // Create orange-enhanced filter (for Halloween)
+    const orangeEnhancedFilter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+    orangeEnhancedFilter.id = `orange-glow-${symbolId}`;
+    orangeEnhancedFilter.innerHTML = `
+        <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+        <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+    `;
+    defs.appendChild(orangeEnhancedFilter);
+
+    // Create purple-enhanced filter (for Halloween)
+    const purpleEnhancedFilter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+    purpleEnhancedFilter.id = `purple-glow-${symbolId}`;
+    purpleEnhancedFilter.innerHTML = `
+        <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+        <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+    `;
+    defs.appendChild(purpleEnhancedFilter);
+
+    // Create green-enhanced filter (for Christmas)
+    const greenEnhancedFilter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+    greenEnhancedFilter.id = `green-glow-${symbolId}`;
+    greenEnhancedFilter.innerHTML = `
+        <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+        <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+    `;
+    defs.appendChild(greenEnhancedFilter);
+
+    // Create red-enhanced filter (for Christmas)
+    const redEnhancedFilter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+    redEnhancedFilter.id = `red-glow-${symbolId}`;
+    redEnhancedFilter.innerHTML = `
+        <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+        <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+    `;
+    defs.appendChild(redEnhancedFilter);
+
     symbol.appendChild(defs);
 
-    // Create SVG parts
     let svgParts = parts.map((attrs, index) => {
         let element = document.createElementNS('http://www.w3.org/2000/svg', attrs.d ? 'path' : 'line');
-        
-        // Performance: Batch attribute setting
-        for (const [key, value] of Object.entries(attrs)) {
-            element.setAttribute(key, value);
-        }
-        
-        // Basic styling
+        Object.entries(attrs).forEach(([key, value]) => element.setAttribute(key, value));
+
+        // Use a much darker gradient for inactive parts
         element.setAttribute('stroke', '#333333');
         element.setAttribute('stroke-width', '1');
         element.setAttribute('stroke-linecap', 'round');
@@ -785,7 +759,7 @@ function createSymbol(type) {
     });
 
     // Add this symbol to the global symbolsData array
-    state.symbols.data.push({
+    symbolsData.push({
         symbolId,
         svgParts,
         activePartIndex: 0
@@ -794,117 +768,110 @@ function createSymbol(type) {
     // Make sure the global timer is running
     startGlobalTimer();
 
-    // Add symbol to the DOM
-    domCache.container.appendChild(symbol);
+    document.getElementById('container').appendChild(symbol);
 }
 
-// Spawn symbols with throttling
-function spawnSymbols() {
-    // Only spawn a new symbol if we're under the limit
-    if (state.symbols.active.length < state.symbols.maxSymbols) {
-        const symbolTypes = ['cross', 'circle', 'triangle', 'square'];
-        createSymbol(symbolTypes[Math.floor(Math.random() * symbolTypes.length)]);
+// Reset and restart the global timer when visibility changes
+document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'visible') {
+        // Clear the existing timer
+        if (globalSymbolTimer !== null) {
+            clearInterval(globalSymbolTimer);
+            globalSymbolTimer = null;
+        }
+        
+        // Restart the timer to sync all symbols
+        startGlobalTimer();
     }
-    
-    // Set timeout for next symbol
+});
+
+// Create a window resize handler to resync the timer
+window.addEventListener('resize', function() {
+    // Clear the existing timer with a small delay to allow resize to complete
+    setTimeout(() => {
+        if (globalSymbolTimer !== null) {
+            clearInterval(globalSymbolTimer);
+            globalSymbolTimer = null;
+        }
+        
+        // Restart the timer to sync all symbols
+        startGlobalTimer();
+    }, 100);
+});
+
+function spawnSymbols() {
+    const symbolTypes = ['cross', 'circle', 'triangle', 'square'];
+    createSymbol(symbolTypes[Math.floor(Math.random() * symbolTypes.length)]);
+    // Fixed delay for consistent appearance
     setTimeout(spawnSymbols, 1000);
 }
 
-// Clear all intervals for light animations with a utility function
-function clearAllIntervals(intervalsArray) {
-    intervalsArray.forEach(interval => clearInterval(interval));
-    return [];
+// Clear all intervals for light animations
+function clearLightIntervals() {
+    lightIntervals.forEach(interval => clearInterval(interval));
+    lightIntervals = [];
 }
 
-// Create snow or Halloween elements with improved performance
-function createFallingElements(className, characters, count = 50) {
-    // Clear existing elements first
-    document.querySelectorAll('.' + className).forEach(element => element.remove());
-    
-    // Performance optimization: Use document fragment
-    const fragment = document.createDocumentFragment();
-    
-    for (let i = 0; i < count; i++) {
-        const element = document.createElement('div');
-        element.className = className;
-        
-        if (characters) {
-            element.innerHTML = characters[Math.floor(Math.random() * characters.length)];
-        }
-        
-        // Set random properties
-        element.style.fontSize = (Math.random() * 20 + 10) + 'px';
-        element.style.opacity = Math.random() * 0.7 + 0.3;
-        element.style.left = Math.random() * 100 + '%';
-        
-        // Different animation duration for each element
-        const animationDuration = Math.random() * 15 + 10;
-        element.style.animationDuration = animationDuration + 's';
-        
-        // Random animation delay
-        element.style.animationDelay = Math.random() * 5 + 's';
-        
-        fragment.appendChild(element);
-    }
-    
-    // Append all elements at once
-    document.body.appendChild(fragment);
-    
-    // Show elements based on current mode
-    const showSnowflakes = state.modes.christmas || state.modes.combined;
-    const showHalloweenElements = state.modes.halloween || state.modes.combined;
-    
-    document.querySelectorAll('.snowflake').forEach(flake => {
-        flake.style.display = showSnowflakes ? 'block' : 'none';
-    });
-    
-    document.querySelectorAll('.halloween-element').forEach(element => {
-        element.style.display = showHalloweenElements ? 'block' : 'none';
-    });
+// Clear Halloween light intervals
+function clearHalloweenLightIntervals() {
+    halloweenLightIntervals.forEach(interval => clearInterval(interval));
+    halloweenLightIntervals = [];
 }
 
-// Flash random lightning/thunder
-function triggerLightning() {
-    if (!state.modes.halloween && !state.modes.combined) return;
-
-    domCache.halloween.thunderFlash.style.animation = 'lightning-flash 1s';
-
-    // Reset animation after it completes
-    setTimeout(() => {
-        domCache.halloween.thunderFlash.style.animation = '';
-    }, 1000);
-
-    // Schedule next lightning
-    if (state.modes.halloween || state.modes.combined) {
-        const nextLightning = 5000 + Math.random() * 20000; // Random between 5-25 seconds
-        setTimeout(triggerLightning, nextLightning);
-    }
+// Clear combined light intervals
+function clearCombinedLightIntervals() {
+    combinedLightIntervals.forEach(interval => clearInterval(interval));
+    combinedLightIntervals = [];
 }
 
-// Create Christmas lights
+// Create Christmas tree LED-style lights with different modes
 function createChristmasLights() {
-    // Clear existing lights
+    // Clear existing lights and intervals
     document.querySelectorAll('.christmas-light').forEach(light => light.remove());
-    state.lights.christmas.intervals = clearAllIntervals(state.lights.christmas.intervals);
+    clearLightIntervals();
 
-    // Show light cord and container
-    domCache.christmas.lightsContainer.style.display = 'block';
-    domCache.christmas.lightCord.style.display = 'block';
+    const lightsContainer = document.getElementById('lights-container');
+    lightsContainer.style.display = 'block';
 
-    // Expanded Christmas light colors
+    // Show light cord
+    document.querySelector('.light-cord').style.display = 'block';
+
+    // Expanded Christmas light colors - more varied for LED effect
     const lightColors = [
-        '#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', 
-        '#00ffff', '#ff8000', '#ffffff', '#39ff14', '#FF10F0', 
-        '#7df9ff', '#FF1493', '#00FF7F', '#FFA500', '#9400D3', 
-        '#FB33DB', '#7CFC00', '#FF6347', '#1E90FF', '#FFFF00'
+        '#ff0000', // Red
+        '#00ff00', // Green
+        '#0000ff', // Blue
+        '#ffff00', // Yellow
+        '#ff00ff', // Magenta
+        '#00ffff', // Cyan
+        '#ff8000', // Orange
+        '#ffffff', // White
+        '#39ff14', // Neon green
+        '#FF10F0', // Hot pink
+        '#7df9ff', // Electric blue
+        '#FF1493', // Deep pink
+        '#00FF7F', // Spring green
+        '#FFA500', // Orange
+        '#9400D3', // Violet
+        '#FB33DB', // Bright pink
+        '#7CFC00', // Lawn green
+        '#FF6347', // Tomato
+        '#1E90FF', // Dodger blue
+        '#FFFF00'  // Yellow
+    ];
+
+    // Animation patterns
+    const animationPatterns = [
+        'twinkle1',
+        'twinkle2',
+        'twinkle3',
+        'pulse',
+        'blink'
     ];
 
     const windowWidth = window.innerWidth;
-    const lightCount = Math.floor(windowWidth / 25) + 4; // One light every 25px
+    const lightCount = Math.floor(windowWidth / 25) + 4; // One light every 25px for more lights
 
-    // Performance optimization: Use document fragment
-    const fragment = document.createDocumentFragment();
-    
     // Create all lights
     for (let i = 0; i < lightCount; i++) {
         const light = document.createElement('div');
@@ -912,7 +879,8 @@ function createChristmasLights() {
         light.dataset.index = i;
 
         // Random color assignment
-        const color = lightColors[Math.floor(Math.random() * lightColors.length)];
+        const randomColorIndex = Math.floor(Math.random() * lightColors.length);
+        const color = lightColors[randomColorIndex];
         light.style.backgroundColor = color;
         light.dataset.color = color;
 
@@ -922,41 +890,44 @@ function createChristmasLights() {
         // Add a glow effect based on color
         light.style.boxShadow = `0 0 5px ${color}, 0 0 10px ${color}`;
 
-        fragment.appendChild(light);
+        // Store in container
+        lightsContainer.appendChild(light);
     }
-    
-    // Append all lights at once
-    domCache.christmas.lightsContainer.appendChild(fragment);
 
     // Apply the current mode
-    setLightMode(state.lights.christmas.mode);
+    setLightMode(currentLightMode);
 
-    // Decorate the tree with lights
+    // Decorate the tree with lights too
     decorateTreeWithLights();
 }
 
-// Create Halloween lights with performance optimization
+// Create Halloween lights
 function createHalloweenLights() {
-    // Clear existing lights
+    // Clear existing lights and intervals
     document.querySelectorAll('.halloween-light').forEach(light => light.remove());
-    state.lights.halloween.intervals = clearAllIntervals(state.lights.halloween.intervals);
+    clearHalloweenLightIntervals();
 
-    // Show light container and cord
-    domCache.halloween.lightsContainer.style.display = 'block';
-    domCache.halloween.lightCord.style.display = 'block';
+    const lightsContainer = document.getElementById('halloween-lights-container');
+    lightsContainer.style.display = 'block';
+
+    // Show light cord
+    document.querySelector('.halloween-light-cord').style.display = 'block';
 
     // Halloween light colors
     const lightColors = [
-        '#ff6600', '#6600cc', '#00cc00', '#ff0000', 
-        '#66ccff', '#ffcc00', '#39ff14', '#ff00ff'
+        '#ff6600', // Orange
+        '#6600cc', // Purple
+        '#00cc00', // Toxic green
+        '#ff0000', // Blood red
+        '#66ccff', // Ghost blue
+        '#ffcc00', // Pumpkin gold
+        '#39ff14', // Slime green
+        '#ff00ff'  // Magenta
     ];
 
     const windowWidth = window.innerWidth;
     const lightCount = Math.floor(windowWidth / 25) + 4; // One light every 25px
 
-    // Performance optimization: Use document fragment
-    const fragment = document.createDocumentFragment();
-    
     // Create all lights
     for (let i = 0; i < lightCount; i++) {
         const light = document.createElement('div');
@@ -964,7 +935,8 @@ function createHalloweenLights() {
         light.dataset.index = i;
 
         // Random color assignment
-        const color = lightColors[Math.floor(Math.random() * lightColors.length)];
+        const randomColorIndex = Math.floor(Math.random() * lightColors.length);
+        const color = lightColors[randomColorIndex];
         light.style.backgroundColor = color;
         light.dataset.color = color;
 
@@ -974,29 +946,26 @@ function createHalloweenLights() {
         // Add a glow effect based on color
         light.style.boxShadow = `0 0 5px ${color}, 0 0 10px ${color}`;
 
-        fragment.appendChild(light);
+        // Store in container
+        lightsContainer.appendChild(light);
     }
-    
-    // Append all lights at once
-    domCache.halloween.lightsContainer.appendChild(fragment);
 
     // Apply the current Halloween light mode
-    setHalloweenLightMode(state.lights.halloween.mode);
+    setHalloweenLightMode(currentHalloweenLightMode);
 
     // Create pumpkin patch
     createPumpkinPatch();
 }
 
-// Create pumpkin patch with performance optimization
+// Create pumpkin patch decoration
 function createPumpkinPatch() {
+    const pumpkinPatch = document.getElementById('pumpkin-patch');
+
     // Clear existing pumpkins
-    domCache.halloween.pumpkinPatch.innerHTML = '';
+    pumpkinPatch.innerHTML = '';
 
     // Create 3-5 pumpkins in different positions
     const numPumpkins = Math.floor(Math.random() * 3) + 3;
-    
-    // Performance optimization: Use document fragment
-    const fragment = document.createDocumentFragment();
 
     for (let i = 0; i < numPumpkins; i++) {
         const pumpkin = document.createElement('div');
@@ -1010,27 +979,851 @@ function createPumpkinPatch() {
         const sizeFactor = 0.8 + (Math.random() * 0.4);
         pumpkin.style.transform = `scale(${sizeFactor})`;
 
-        // Create pumpkin parts with innerHTML for better performance
-        pumpkin.innerHTML = `
-            <div class="pumpkin-stem"></div>
-            <div class="pumpkin-face">
-                <div class="pumpkin-eyes">
-                    <div class="pumpkin-eye" ${Math.random() > 0.5 ? 'style="clip-path: polygon(50% 0%, 0% 100%, 100% 100%)"' : ''}></div>
-                    <div class="pumpkin-eye" ${Math.random() > 0.5 ? 'style="clip-path: polygon(50% 0%, 0% 100%, 100% 100%)"' : ''}></div>
-                </div>
-                <div class="pumpkin-mouth" ${Math.random() > 0.5 ? 'style="clip-path: polygon(0% 0%, 25% 100%, 50% 0%, 75% 100%, 100% 0%)"' : ''}></div>
-            </div>
-        `;
-        
-        fragment.appendChild(pumpkin);
+        // Create stem
+        const stem = document.createElement('div');
+        stem.className = 'pumpkin-stem';
+        pumpkin.appendChild(stem);
+
+        // Create face
+        const face = document.createElement('div');
+        face.className = 'pumpkin-face';
+
+        // Eyes
+        const eyes = document.createElement('div');
+        eyes.className = 'pumpkin-eyes';
+
+        const eyeLeft = document.createElement('div');
+        eyeLeft.className = 'pumpkin-eye';
+
+        const eyeRight = document.createElement('div');
+        eyeRight.className = 'pumpkin-eye';
+
+        eyes.appendChild(eyeLeft);
+        eyes.appendChild(eyeRight);
+
+        // Mouth
+        const mouth = document.createElement('div');
+        mouth.className = 'pumpkin-mouth';
+
+        // Random face shape
+        if (Math.random() > 0.5) {
+            // Triangle eyes
+            eyeLeft.style.clipPath = 'polygon(50% 0%, 0% 100%, 100% 100%)';
+            eyeRight.style.clipPath = 'polygon(50% 0%, 0% 100%, 100% 100%)';
+        }
+
+        if (Math.random() > 0.5) {
+            // Zigzag mouth
+            mouth.style.clipPath = 'polygon(0% 0%, 25% 100%, 50% 0%, 75% 100%, 100% 0%)';
+        }
+
+        face.appendChild(eyes);
+        face.appendChild(mouth);
+        pumpkin.appendChild(face);
+
+        pumpkinPatch.appendChild(pumpkin);
     }
-    
-    // Append all pumpkins at once
-    domCache.halloween.pumpkinPatch.appendChild(fragment);
 }
 
-// Decorate tree with lights
+// Create Halloween elements (bats, leaves, etc.)
+function createHalloweenElements() {
+    // Clear existing elements
+    document.querySelectorAll('.halloween-element').forEach(element => element.remove());
+
+    const elements = ['🦇', '🍂', '🕸️', '🕷️', '👻', '💀'];
+    const numElements = 30; // Number of falling elements
+
+    for (let i = 0; i < numElements; i++) {
+        const element = document.createElement('div');
+        element.className = 'halloween-element';
+
+        // Random element
+        const randomElementIndex = Math.floor(Math.random() * elements.length);
+        element.innerHTML = elements[randomElementIndex];
+
+        // Random size
+        element.style.fontSize = (Math.random() * 20 + 10) + 'px';
+
+        // Random opacity
+        element.style.opacity = Math.random() * 0.7 + 0.3;
+
+        // Random position
+        element.style.left = Math.random() * 100 + '%';
+
+        // Different animation duration for each element
+        const animationDuration = Math.random() * 15 + 10;
+        element.style.animationDuration = animationDuration + 's';
+
+        // Random animation delay
+        element.style.animationDelay = Math.random() * 5 + 's';
+
+        document.body.appendChild(element);
+
+        // Make sure it's visible if Halloween mode is enabled
+        if (halloweenModeEnabled || combinedModeEnabled) {
+            element.style.display = 'block';
+        }
+    }
+}
+
+// Flash random lightning/thunder
+function triggerLightning() {
+    if (!halloweenModeEnabled && !combinedModeEnabled) return;
+
+    const thunderFlash = document.getElementById('thunder-flash');
+    thunderFlash.style.animation = 'lightning-flash 1s';
+
+    // Reset animation after it completes
+    setTimeout(() => {
+        thunderFlash.style.animation = '';
+    }, 1000);
+
+    // Schedule next lightning
+    if (halloweenModeEnabled || combinedModeEnabled) {
+        const nextLightning = 5000 + Math.random() * 20000; // Random between 5-25 seconds
+        setTimeout(triggerLightning, nextLightning);
+    }
+}
+
+// Set light mode based on selection
+function setLightMode(mode) {
+    currentLightMode = mode;
+    document.getElementById('light-mode-label').textContent = `Light Mode: ${mode.charAt(0).toUpperCase() + mode.slice(1)}`;
+
+    // Clear previous animations
+    clearLightIntervals();
+
+    const lights = document.querySelectorAll('.christmas-light');
+
+    // Reset all lights
+    lights.forEach(light => {
+        // Clear any inline styles from previous modes
+        light.style.animation = '';
+        light.style.animationDelay = '';
+        light.style.opacity = '1';
+        light.style.transform = 'scale(1)';
+    });
+
+    switch (mode) {
+        case 'random':
+            applyRandomMode(lights);
+            break;
+        case 'sequential':
+            applySequentialMode(lights);
+            break;
+        case 'alternating':
+            applyAlternatingMode(lights);
+            break;
+        case 'wave':
+            applyWaveMode(lights);
+            break;
+        case 'chasing':
+            applyChasingMode(lights);
+            break;
+        case 'colorgroups':
+            applyColorGroupsMode(lights);
+            break;
+        case 'heartbeat':
+            applyHeartbeatMode(lights);
+            break;
+        case 'morse':
+            applyMorseCodeMode(lights);
+            break;
+        case 'rainbow':
+            applyRainbowMode(lights);
+            break;
+        case 'cascade':
+            applyCascadeMode(lights);
+            break;
+    }
+}
+
+// Set Halloween light mode
+function setHalloweenLightMode(mode) {
+    currentHalloweenLightMode = mode;
+    document.getElementById('halloween-light-label').textContent = `Light Mode: ${mode.charAt(0).toUpperCase() + mode.slice(1)}`;
+
+    // Clear previous animations
+    clearHalloweenLightIntervals();
+
+    const lights = document.querySelectorAll('.halloween-light');
+
+    // Reset all lights
+    lights.forEach(light => {
+        light.style.animation = '';
+        light.style.animationDelay = '';
+        light.style.opacity = '1';
+        light.style.transform = 'scale(1)';
+    });
+
+    switch (mode) {
+        case 'spooky':
+            applySpookyMode(lights);
+            break;
+        case 'flicker':
+            applyFlickerMode(lights);
+            break;
+        case 'pulse':
+            applyPulseMode(lights);
+            break;
+        case 'thunder':
+            applyThunderMode(lights);
+            break;
+        case 'colorshift':
+            applyColorShiftMode(lights);
+            break;
+        case 'witch':
+            applyWitchMode(lights);
+            break;
+        case 'zombie':
+            applyZombieMode(lights);
+            break;
+    }
+}
+
+// Halloween Light Modes
+
+// Spooky mode - random flickering
+function applySpookyMode(lights) {
+    const lightsArray = Array.from(lights);
+
+    lightsArray.forEach(light => {
+        // Random flickering
+        const randomFlickerSpeed = 0.5 + Math.random() * 2;
+        light.style.animation = `twinkle${Math.floor(Math.random() * 3) + 1} ${randomFlickerSpeed}s infinite`;
+
+        // Random delay
+        light.style.animationDelay = (Math.random() * 2) + 's';
+    });
+
+    // Occasional random dimming
+    const interval = setInterval(() => {
+        lightsArray.forEach(light => {
+            if (Math.random() > 0.8) {
+                light.style.opacity = Math.random() * 0.7 + 0.3;
+            }
+        });
+    }, 200);
+
+    halloweenLightIntervals.push(interval);
+}
+
+// Flicker mode - lights rapidly turn on and off randomly
+function applyFlickerMode(lights) {
+    const lightsArray = Array.from(lights);
+
+    // Set all lights dim initially
+    lightsArray.forEach(light => {
+        light.style.opacity = '0.3';
+    });
+
+    // Rapid random flickering
+    const interval = setInterval(() => {
+        lightsArray.forEach(light => {
+            if (Math.random() > 0.5) {
+                light.style.opacity = Math.random() > 0.5 ? '1' : '0.1';
+            }
+        });
+    }, 100);
+
+    halloweenLightIntervals.push(interval);
+}
+
+// Pulse mode - all lights pulse together like a heartbeat
+function applyPulseMode(lights) {
+    const lightsArray = Array.from(lights);
+
+    let pulseState = 0;
+    const interval = setInterval(() => {
+        switch (pulseState) {
+            case 0: // First beat
+                lightsArray.forEach(light => {
+                    light.style.opacity = '1';
+                    light.style.transform = 'scale(1.2)';
+                });
+                pulseState = 1;
+                setTimeout(() => pulseState = 2, 100);
+                break;
+            case 2: // Back to dim
+                lightsArray.forEach(light => {
+                    light.style.opacity = '0.3';
+                    light.style.transform = 'scale(0.8)';
+                });
+                pulseState = 3;
+                setTimeout(() => pulseState = 4, 300);
+                break;
+            case 4: // Second beat
+                lightsArray.forEach(light => {
+                    light.style.opacity = '1';
+                    light.style.transform = 'scale(1.2)';
+                });
+                pulseState = 5;
+                setTimeout(() => pulseState = 6, 100);
+                break;
+            case 6: // Back to dim for longer pause
+                lightsArray.forEach(light => {
+                    light.style.opacity = '0.3';
+                    light.style.transform = 'scale(0.8)';
+                });
+                pulseState = 0;
+                break;
+        }
+    }, 800);
+
+    halloweenLightIntervals.push(interval);
+}
+
+// Thunder mode - occasional flashes of all lights
+function applyThunderMode(lights) {
+    const lightsArray = Array.from(lights);
+
+    // Set all lights dim initially
+    lightsArray.forEach(light => {
+        light.style.opacity = '0.3';
+        light.style.transform = 'scale(0.8)';
+    });
+
+    // Occasional lightning flash
+    function lightningFlash() {
+        // All lights flash bright
+        lightsArray.forEach(light => {
+            light.style.opacity = '1';
+            light.style.transform = 'scale(1.2)';
+        });
+
+        // Dim after short time
+        setTimeout(() => {
+            lightsArray.forEach(light => {
+                light.style.opacity = '0.3';
+                light.style.transform = 'scale(0.8)';
+            });
+        }, 200);
+
+        // Secondary flash sometimes
+        if (Math.random() > 0.5) {
+            setTimeout(() => {
+                lightsArray.forEach(light => {
+                    light.style.opacity = '1';
+                    light.style.transform = 'scale(1.2)';
+                });
+
+                setTimeout(() => {
+                    lightsArray.forEach(light => {
+                        light.style.opacity = '0.3';
+                        light.style.transform = 'scale(0.8)';
+                    });
+                }, 100);
+            }, 300);
+        }
+
+        // Schedule next flash
+        const nextFlash = 3000 + Math.random() * 10000; // 3-13 seconds
+        setTimeout(lightningFlash, nextFlash);
+    }
+
+    // Start the lightning
+    lightningFlash();
+}
+
+// Color shift mode - colors gradually shift
+function applyColorShiftMode(lights) {
+    const lightsArray = Array.from(lights);
+    const colors = [
+        '#ff6600', // Orange
+        '#6600cc', // Purple
+        '#00cc00', // Toxic green
+        '#ff0000', // Blood red
+        '#66ccff', // Ghost blue
+        '#ffcc00'  // Pumpkin gold
+    ];
+
+    // Start with random colors
+    lightsArray.forEach(light => {
+        const randomColor = colors[Math.floor(Math.random() * colors.length)];
+        light.style.backgroundColor = randomColor;
+        light.style.boxShadow = `0 0 5px ${randomColor}, 0 0 10px ${randomColor}`;
+    });
+
+    // Gradually shift colors
+    const interval = setInterval(() => {
+        lightsArray.forEach(light => {
+            if (Math.random() > 0.8) {
+                const currentColor = light.style.backgroundColor;
+                let currentIndex = -1;
+                
+                // Find the index of the current color
+                for (let i = 0; i < colors.length; i++) {
+                    if (rgbToHex(currentColor) === colors[i]) {
+                        currentIndex = i;
+                        break;
+                    }
+                }
+                
+                // If color not found or at end of array, pick random color
+                const newColorIndex = (currentIndex !== -1) ? 
+                    (currentIndex + 1) % colors.length : 
+                    Math.floor(Math.random() * colors.length);
+                    
+                const newColor = colors[newColorIndex];
+                light.style.backgroundColor = newColor;
+                light.style.boxShadow = `0 0 5px ${newColor}, 0 0 10px ${newColor}`;
+            }
+        });
+    }, 500);
+
+    halloweenLightIntervals.push(interval);
+}
+
+// Helper function to convert RGB to HEX format
+function rgbToHex(rgb) {
+    // If it's already a hex color, return it
+    if (rgb.startsWith('#')) return rgb;
+    
+    // Extract RGB values
+    const rgbValues = rgb.match(/\d+/g);
+    if (!rgbValues || rgbValues.length < 3) return '#000000';
+    
+    // Convert to hex
+    return '#' + 
+        parseInt(rgbValues[0]).toString(16).padStart(2, '0') +
+        parseInt(rgbValues[1]).toString(16).padStart(2, '0') +
+        parseInt(rgbValues[2]).toString(16).padStart(2, '0');
+}
+
+// Witch mode - green and purple alternating pattern
+function applyWitchMode(lights) {
+    const lightsArray = Array.from(lights);
+    const witchColors = ['#00cc00', '#6600cc']; // Green and purple
+
+    // Set colors alternating
+    lightsArray.forEach((light, index) => {
+        const color = witchColors[index % 2];
+        light.style.backgroundColor = color;
+        light.style.boxShadow = `0 0 5px ${color}, 0 0 10px ${color}`;
+    });
+
+    let isFirstGroupActive = true;
+    const interval = setInterval(() => {
+        lightsArray.forEach((light, index) => {
+            const isInFirstGroup = index % 2 === 0;
+
+            if (isInFirstGroup === isFirstGroupActive) {
+                light.style.opacity = '1';
+                light.style.transform = 'scale(1.2)';
+            } else {
+                light.style.opacity = '0.3';
+                light.style.transform = 'scale(0.8)';
+            }
+        });
+
+        isFirstGroupActive = !isFirstGroupActive;
+    }, 500);
+
+    halloweenLightIntervals.push(interval);
+}
+
+// Zombie mode - sickly green pulsing
+function applyZombieMode(lights) {
+    const lightsArray = Array.from(lights);
+    const zombieGreen = '#39ff14'; // Toxic green
+
+    // Set all lights to zombie green
+    lightsArray.forEach(light => {
+        light.style.backgroundColor = zombieGreen;
+        light.style.boxShadow = `0 0 5px ${zombieGreen}, 0 0 10px ${zombieGreen}`;
+    });
+
+    // Slow, creepy pulse
+    let intensity = 0;
+    let increasing = true;
+
+    const interval = setInterval(() => {
+        if (increasing) {
+            intensity += 0.1;
+            if (intensity >= 1) {
+                intensity = 1;
+                increasing = false;
+            }
+        } else {
+            intensity -= 0.1;
+            if (intensity <= 0.3) {
+                intensity = 0.3;
+                increasing = true;
+            }
+        }
+
+        lightsArray.forEach(light => {
+            light.style.opacity = intensity.toString();
+            light.style.transform = `scale(${0.8 + (0.4 * intensity)})`;
+        });
+    }, 200);
+
+    halloweenLightIntervals.push(interval);
+}
+
+// Random mode - lights randomly twinkle
+function applyRandomMode(lights) {
+    const animationPatterns = ['twinkle1', 'twinkle2', 'twinkle3', 'pulse'];
+
+    lights.forEach(light => {
+        // Random animation
+        const randomAnimIndex = Math.floor(Math.random() * animationPatterns.length);
+        const animationName = animationPatterns[randomAnimIndex];
+        const animationDuration = 1 + Math.random() * 3; // 1-4 seconds
+        light.style.animation = `${animationName} ${animationDuration}s infinite`;
+
+        // Random delay for each light
+        light.style.animationDelay = (Math.random() * 2) + 's';
+    });
+
+    // Random changes
+    const interval = setInterval(() => {
+        lights.forEach(light => {
+            // Random chance to change state
+            if (Math.random() > 0.7) {
+                light.style.opacity = Math.random() > 0.5 ? '1' : '0.3';
+                light.style.transform = Math.random() > 0.5 ? 'scale(1.2)' : 'scale(0.8)';
+            }
+        });
+    }, 200);
+
+    lightIntervals.push(interval);
+}
+
+// Sequential mode - lights light up in sequence
+function applySequentialMode(lights) {
+    const lightsArray = Array.from(lights);
+    let currentIndex = 0;
+
+    // Turn off all lights initially
+    lightsArray.forEach(light => {
+        light.style.opacity = '0.3';
+    });
+
+    // Sequential pattern
+    const interval = setInterval(() => {
+        // Reset previous light
+        if (currentIndex > 0) {
+            lightsArray[currentIndex - 1].style.opacity = '0.3';
+            lightsArray[currentIndex - 1].style.transform = 'scale(1)';
+        } else if (currentIndex === 0 && lightsArray.length > 0) {
+            lightsArray[lightsArray.length - 1].style.opacity = '0.3';
+            lightsArray[lightsArray.length - 1].style.transform = 'scale(1)';
+        }
+
+        // Light up current light
+        lightsArray[currentIndex].style.opacity = '1';
+        lightsArray[currentIndex].style.transform = 'scale(1.2)';
+
+        // Move to next light
+        currentIndex = (currentIndex + 1) % lightsArray.length;
+    }, 100);
+
+    lightIntervals.push(interval);
+}
+
+// Alternating mode - lights alternate between even and odd
+function applyAlternatingMode(lights) {
+    const lightsArray = Array.from(lights);
+    let isEvenActive = true;
+
+    // Initial state - all on
+    lightsArray.forEach(light => {
+        light.style.opacity = '1';
+    });
+
+    // Alternating pattern
+    const interval = setInterval(() => {
+        lightsArray.forEach((light, index) => {
+            const isEven = index % 2 === 0;
+            if (isEven === isEvenActive) {
+                light.style.opacity = '1';
+                light.style.transform = 'scale(1.2)';
+            } else {
+                light.style.opacity = '0.3';
+                light.style.transform = 'scale(0.8)';
+            }
+        });
+
+        isEvenActive = !isEvenActive;
+    }, 500);
+
+    lightIntervals.push(interval);
+}
+
+// Wave mode - creates a wave-like effect
+function applyWaveMode(lights) {
+    const lightsArray = Array.from(lights);
+
+    // Set up wave animation
+    lightsArray.forEach((light, index) => {
+        // Calculation for wave effect
+        const delay = (index * 0.1) % 2; // 0.1 second delay per light, repeat every 2 seconds
+        light.style.animation = 'pulse 2s infinite';
+        light.style.animationDelay = `${delay}s`;
+    });
+}
+
+// Chasing mode - lights move in chasing pattern
+function applyChasingMode(lights) {
+    const lightsArray = Array.from(lights);
+    const groupSize = 3; // Number of lights in each chase group
+
+    // Turn off all lights initially
+    lightsArray.forEach(light => {
+        light.style.opacity = '0.3';
+    });
+
+    let position = 0;
+    const interval = setInterval(() => {
+        // Reset all lights
+        lightsArray.forEach(light => {
+            light.style.opacity = '0.3';
+            light.style.transform = 'scale(0.8)';
+        });
+
+        // Light up the chase group
+        for (let i = 0; i < groupSize; i++) {
+            const lightIndex = (position + i) % lightsArray.length;
+            if (lightsArray[lightIndex]) {
+                lightsArray[lightIndex].style.opacity = '1';
+                lightsArray[lightIndex].style.transform = 'scale(1.2)';
+            }
+        }
+
+        // Move position forward
+        position = (position + 1) % lightsArray.length;
+    }, 100);
+
+    lightIntervals.push(interval);
+}
+
+// Color groups mode - lights of the same color blink together
+function applyColorGroupsMode(lights) {
+    const lightsArray = Array.from(lights);
+    const colorGroups = {};
+
+    // Group lights by color
+    lightsArray.forEach(light => {
+        const color = light.dataset.color;
+        if (!colorGroups[color]) {
+            colorGroups[color] = [];
+        }
+        colorGroups[color].push(light);
+    });
+
+    // Turn all lights dim initially
+    lightsArray.forEach(light => {
+        light.style.opacity = '0.3';
+        light.style.transform = 'scale(0.8)';
+    });
+
+    // Iterate through color groups
+    let colorIndex = 0;
+    const colorKeys = Object.keys(colorGroups);
+
+    const interval = setInterval(() => {
+        // Reset all lights
+        lightsArray.forEach(light => {
+            light.style.opacity = '0.3';
+            light.style.transform = 'scale(0.8)';
+        });
+
+        // Activate current color group
+        const currentColor = colorKeys[colorIndex];
+        if (colorGroups[currentColor]) {
+            colorGroups[currentColor].forEach(light => {
+                light.style.opacity = '1';
+                light.style.transform = 'scale(1.2)';
+            });
+        }
+
+        // Move to next color
+        colorIndex = (colorIndex + 1) % colorKeys.length;
+    }, 500);
+
+    lightIntervals.push(interval);
+}
+
+// Heartbeat mode - pulse like a heartbeat
+function applyHeartbeatMode(lights) {
+    const lightsArray = Array.from(lights);
+
+    // Set all lights to a dim state initially
+    lightsArray.forEach(light => {
+        light.style.opacity = '0.3';
+        light.style.transform = 'scale(0.8)';
+    });
+
+    let step = 0;
+    const interval = setInterval(() => {
+        if (step === 0 || step === 2) {
+            // First or second pulse - lights on
+            lightsArray.forEach(light => {
+                light.style.opacity = '1';
+                light.style.transform = 'scale(1.2)';
+            });
+        } else if (step === 1) {
+            // Brief pause between pulses
+            lightsArray.forEach(light => {
+                light.style.opacity = '0.5';
+                light.style.transform = 'scale(1)';
+            });
+        } else {
+            // Longer pause after second pulse
+            lightsArray.forEach(light => {
+                light.style.opacity = '0.3';
+                light.style.transform = 'scale(0.8)';
+            });
+        }
+
+        // Advance to next step in heartbeat pattern
+        step = (step + 1) % 4;
+    }, 400);
+
+    lightIntervals.push(interval);
+}
+
+// Morse code mode - "HO HO HO" in Morse code
+function applyMorseCodeMode(lights) {
+    const lightsArray = Array.from(lights);
+
+    // "HO HO HO" in Morse code: .... --- / .... --- / .... ---
+    const morsePattern = [
+        1, 0, 1, 0, 1, 0, 1, 0, // H (4 dots)
+        2, 0, 2, 0, 2, 0, // O (3 dashes)
+        0, 0, // Space
+        1, 0, 1, 0, 1, 0, 1, 0, // H
+        2, 0, 2, 0, 2, 0, // O
+        0, 0, // Space
+        1, 0, 1, 0, 1, 0, 1, 0, // H
+        2, 0, 2, 0, 2, 0, // O
+    ];
+
+    // Set all lights off initially
+    lightsArray.forEach(light => {
+        light.style.opacity = '0.3';
+        light.style.transform = 'scale(0.8)';
+    });
+
+    let patternIndex = 0;
+
+    const interval = setInterval(() => {
+        const currentCode = morsePattern[patternIndex];
+
+        if (currentCode === 1) {
+            // Dot - short flash
+            lightsArray.forEach(light => {
+                light.style.opacity = '1';
+                light.style.transform = 'scale(1.2)';
+            });
+
+            setTimeout(() => {
+                lightsArray.forEach(light => {
+                    light.style.opacity = '0.3';
+                    light.style.transform = 'scale(0.8)';
+                });
+            }, 250); // Short duration for dot
+
+        } else if (currentCode === 2) {
+            // Dash - longer flash
+            lightsArray.forEach(light => {
+                light.style.opacity = '1';
+                light.style.transform = 'scale(1.2)';
+            });
+
+            setTimeout(() => {
+                lightsArray.forEach(light => {
+                    light.style.opacity = '0.3';
+                    light.style.transform = 'scale(0.8)';
+                });
+            }, 550); // Longer duration for dash
+        }
+
+        // Move to next part of pattern
+        patternIndex = (patternIndex + 1) % morsePattern.length;
+    }, 650);
+
+    lightIntervals.push(interval);
+}
+
+// Rainbow mode - lights change colors in sequence
+function applyRainbowMode(lights) {
+    const lightsArray = Array.from(lights);
+    const rainbowColors = [
+        '#ff0000', // Red
+        '#ff7f00', // Orange
+        '#ffff00', // Yellow
+        '#00ff00', // Green
+        '#0000ff', // Blue
+        '#4b0082', // Indigo
+        '#9400d3'  // Violet
+    ];
+
+    // Set initial state
+    lightsArray.forEach((light, index) => {
+        const initialColorIndex = index % rainbowColors.length;
+        light.style.backgroundColor = rainbowColors[initialColorIndex];
+        light.style.boxShadow = `0 0 5px ${rainbowColors[initialColorIndex]}, 0 0 10px ${rainbowColors[initialColorIndex]}`;
+    });
+
+    let step = 0;
+    const interval = setInterval(() => {
+        lightsArray.forEach((light, index) => {
+            const colorIndex = (index + step) % rainbowColors.length;
+            light.style.backgroundColor = rainbowColors[colorIndex];
+            light.style.boxShadow = `0 0 5px ${rainbowColors[colorIndex]}, 0 0 10px ${rainbowColors[colorIndex]}`;
+        });
+
+        step = (step + 1) % rainbowColors.length;
+    }, 200);
+
+    lightIntervals.push(interval);
+}
+
+// Cascade mode - twinkling starts at one end and cascades
+function applyCascadeMode(lights) {
+    const lightsArray = Array.from(lights);
+    const numLights = lightsArray.length;
+    let wavePosition = 0;
+    const waveWidth = Math.floor(numLights / 4); // Wave spans about 1/4 of the lights
+
+    // Turn all lights to dim initially
+    lightsArray.forEach(light => {
+        light.style.opacity = '0.3';
+        light.style.transform = 'scale(0.8)';
+    });
+
+    const interval = setInterval(() => {
+        // Reset all lights
+        lightsArray.forEach(light => {
+            light.style.opacity = '0.3';
+            light.style.transform = 'scale(0.8)';
+        });
+
+        // Create the wave effect
+        for (let i = 0; i < waveWidth; i++) {
+            const pos = (wavePosition + i) % numLights;
+            // Calculate intensity based on position in wave (brightest at center)
+            const intensity = 1 - Math.abs((i - waveWidth / 2) / (waveWidth / 2));
+
+            if (lightsArray[pos]) {
+                lightsArray[pos].style.opacity = Math.max(0.3, intensity).toString();
+                lightsArray[pos].style.transform = `scale(${0.8 + 0.4 * intensity})`;
+            }
+        }
+
+        // Move the wave
+        wavePosition = (wavePosition + 1) % numLights;
+    }, 100);
+
+    lightIntervals.push(interval);
+}
+
+// Add lights to the Christmas tree
 function decorateTreeWithLights() {
+    const tree = document.querySelector('.mini-tree');
+    const lightColors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ffffff'];
     const positions = [
         { top: '20%', left: '20%' },
         { top: '20%', left: '80%' },
@@ -1044,15 +1837,10 @@ function decorateTreeWithLights() {
         { top: '50%', left: '40%' },
         { top: '70%', left: '60%' }
     ];
-    
-    const lightColors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ffffff'];
-    
+
     // Clear existing tree lights
     document.querySelectorAll('.tree-light').forEach(light => light.remove());
-    
-    // Performance optimization: Use document fragment
-    const fragment = document.createDocumentFragment();
-    
+
     // Add new lights
     positions.forEach((pos, i) => {
         const light = document.createElement('div');
@@ -1069,52 +1857,316 @@ function decorateTreeWithLights() {
         const animDuration = 1 + Math.random() * 2;
         light.style.animation = `pulse ${animDuration}s infinite ${animDelay}s`;
 
-        fragment.appendChild(light);
+        tree.appendChild(light);
     });
-    
-    // Append all lights at once
-    domCache.christmas.miniTree.appendChild(fragment);
 }
 
-// Create dual effects (combined mode)
+// Create snowflakes
+function createSnowflakes() {
+    // Clear existing snowflakes first
+    document.querySelectorAll('.snowflake').forEach(flake => flake.remove());
+
+    const snowflakeChars = ['❄', '❅', '❆', '*'];
+    const numFlakes = 50; // Increased number of snowflakes
+
+    for (let i = 0; i < numFlakes; i++) {
+        const flake = document.createElement('div');
+        flake.className = 'snowflake';
+        flake.innerHTML = snowflakeChars[Math.floor(Math.random() * snowflakeChars.length)];
+        flake.style.fontSize = (Math.random() * 20 + 10) + 'px'; // Larger snowflakes
+        flake.style.opacity = Math.random() * 0.7 + 0.3;
+        flake.style.left = Math.random() * 100 + '%';
+
+        // Different animation duration for each snowflake
+        const animationDuration = Math.random() * 15 + 10;
+        flake.style.animationDuration = animationDuration + 's';
+
+        // Random animation delay
+        flake.style.animationDelay = Math.random() * 5 + 's';
+
+        document.body.appendChild(flake);
+
+        // Make sure it's visible if Christmas mode is enabled
+        if (christmasModeEnabled || combinedModeEnabled) {
+            flake.style.display = 'block';
+        }
+    }
+}
+
+// Function to toggle Christmas mode
+function toggleChristmasMode() {
+    // Disable other modes if they're enabled
+    if (halloweenModeEnabled) {
+        toggleHalloweenMode();
+    }
+    if (combinedModeEnabled) {
+        toggleCombinedMode();
+    }
+
+    christmasModeEnabled = !christmasModeEnabled;
+
+    const toggleButton = document.getElementById('christmas-toggle');
+    const lightModeControl = document.getElementById('light-mode-control');
+    const miniTree = document.querySelector('.mini-tree');
+    const christmasHat = document.querySelector('.christmas-hat');
+    const lightsContainer = document.getElementById('lights-container');
+
+    if (christmasModeEnabled) {
+        // Enable Christmas mode
+        toggleButton.textContent = 'Disable Christmas Mode';
+        toggleButton.style.backgroundColor = '#00aa00'; // Green button
+
+        // Create and show Christmas elements
+        createSnowflakes();
+        createChristmasLights();
+
+        // Show elements
+        lightModeControl.style.display = 'block';
+        miniTree.style.display = 'block';
+        christmasHat.style.display = 'block';
+        lightsContainer.style.display = 'block';
+
+        // Show snowflakes
+        document.querySelectorAll('.snowflake').forEach(flake => {
+            flake.style.display = 'block';
+        });
+
+    } else {
+        // Disable Christmas mode
+        toggleButton.textContent = 'Enable Christmas Mode';
+        toggleButton.style.backgroundColor = '#ff0000'; // Red button
+
+        // Hide Christmas elements
+        lightModeControl.style.display = 'none';
+        miniTree.style.display = 'none';
+        christmasHat.style.display = 'none';
+        lightsContainer.style.display = 'none';
+        document.querySelector('.light-cord').style.display = 'none';
+
+        // Clear light animations
+        clearLightIntervals();
+
+        // Hide snowflakes
+        document.querySelectorAll('.snowflake').forEach(flake => {
+            flake.style.display = 'none';
+        });
+    }
+}
+
+// Function to toggle Halloween mode
+function toggleHalloweenMode() {
+    // Disable other modes if they're enabled
+    if (christmasModeEnabled) {
+        toggleChristmasMode();
+    }
+    if (combinedModeEnabled) {
+        toggleCombinedMode();
+    }
+
+    halloweenModeEnabled = !halloweenModeEnabled;
+
+    const toggleButton = document.getElementById('halloween-toggle');
+    const halloweenLightControl = document.getElementById('halloween-light-control');
+    const pumpkinPatch = document.getElementById('pumpkin-patch');
+    const witchHat = document.querySelector('.witch-hat');
+    const halloweenLightsContainer = document.getElementById('halloween-lights-container');
+    const ghosts = document.querySelectorAll('.ghost');
+    const spiderWeb = document.getElementById('spider-web');
+    const fogEffect = document.getElementById('fog-effect');
+
+    if (halloweenModeEnabled) {
+        // Enable Halloween mode
+        toggleButton.textContent = 'Disable Halloween Mode';
+        toggleButton.style.backgroundColor = '#6600cc'; // Purple button
+
+        // Create and show Halloween elements
+        createHalloweenElements();
+        createHalloweenLights();
+
+        // Show elements
+        halloweenLightControl.style.display = 'block';
+        pumpkinPatch.style.display = 'block';
+        witchHat.style.display = 'block';
+        halloweenLightsContainer.style.display = 'block';
+        spiderWeb.style.display = 'block';
+
+        // Show ghosts
+        ghosts.forEach(ghost => {
+            ghost.style.display = 'block';
+        });
+
+        // Show falling elements
+        document.querySelectorAll('.halloween-element').forEach(element => {
+            element.style.display = 'block';
+        });
+
+        // Show fog effect
+        fogEffect.style.opacity = '1';
+    } else {
+        // Disable Halloween mode
+        toggleButton.textContent = 'Enable Halloween Mode';
+        toggleButton.style.backgroundColor = '#ff6600'; // Orange button
+
+        // Hide Halloween elements
+        halloweenLightControl.style.display = 'none';
+        pumpkinPatch.style.display = 'none';
+        witchHat.style.display = 'none';
+        halloweenLightsContainer.style.display = 'none';
+        spiderWeb.style.display = 'none';
+        document.querySelector('.halloween-light-cord').style.display = 'none';
+
+        // Clear light animations
+        clearHalloweenLightIntervals();
+
+        // Hide ghosts
+        ghosts.forEach(ghost => {
+            ghost.style.display = 'none';
+        });
+
+        // Hide falling elements
+        document.querySelectorAll('.halloween-element').forEach(element => {
+            element.style.display = 'none';
+        });
+
+        // Hide fog effect
+        fogEffect.style.opacity = '0';
+    }
+}
+
+// Function to toggle combined mode
+function toggleCombinedMode() {
+    // Disable other modes if they're enabled
+    if (christmasModeEnabled) {
+        toggleChristmasMode();
+    }
+    if (halloweenModeEnabled) {
+        toggleHalloweenMode();
+    }
+    
+    combinedModeEnabled = !combinedModeEnabled;
+    
+    const toggleButton = document.getElementById('combined-toggle');
+    const combinedLightControl = document.getElementById('combined-light-control');
+    const dualHat = document.querySelector('.dual-hat');
+    const combinedCorner = document.getElementById('combined-corner');
+    
+    if (combinedModeEnabled) {
+        // Enable combined mode
+        toggleButton.textContent = 'Disable Combined Mode';
+        toggleButton.style.background = 'linear-gradient(to right, #00aa00, #6600cc)';
+        
+        // Create and show combined elements
+        createDualEffects();
+        
+        // Show elements
+        combinedLightControl.style.display = 'block';
+        dualHat.style.display = 'block';
+        combinedCorner.style.display = 'block';
+        
+        // Show both Christmas and Halloween elements
+        document.querySelectorAll('.snowflake').forEach(flake => {
+            flake.style.display = 'block';
+        });
+        document.querySelectorAll('.halloween-element').forEach(element => {
+            element.style.display = 'block';
+        });
+        
+        // Show lights from both themes
+        document.getElementById('lights-container').style.display = 'block';
+        document.querySelector('.light-cord').style.display = 'block';
+        document.getElementById('halloween-lights-container').style.display = 'block';
+        document.querySelector('.halloween-light-cord').style.display = 'block';
+        
+        // Enable fog with reduced opacity
+        document.getElementById('fog-effect').style.opacity = '0.5';
+        
+        // Show ghosts
+        document.querySelectorAll('.ghost').forEach(ghost => {
+            ghost.style.display = 'block';
+        });
+        
+        // Show spider web
+        document.getElementById('spider-web').style.display = 'block';
+    } else {
+        // Disable combined mode
+        toggleButton.textContent = 'Enable Combined Mode';
+        toggleButton.style.background = 'linear-gradient(to right, #ff0000, #ff6600)';
+        
+        // Hide combined elements
+        combinedLightControl.style.display = 'none';
+        dualHat.style.display = 'none';
+        combinedCorner.style.display = 'none';
+        
+        // Hide Christmas elements
+        document.getElementById('lights-container').style.display = 'none';
+        document.querySelector('.light-cord').style.display = 'none';
+        document.querySelectorAll('.snowflake').forEach(flake => {
+            flake.style.display = 'none';
+        });
+        
+        // Hide Halloween elements
+        document.getElementById('halloween-lights-container').style.display = 'none';
+        document.querySelector('.halloween-light-cord').style.display = 'none';
+        document.querySelectorAll('.halloween-element').forEach(element => {
+            element.style.display = 'none';
+        });
+        document.querySelectorAll('.ghost').forEach(ghost => {
+            ghost.style.display = 'none';
+        });
+        document.getElementById('spider-web').style.display = 'none';
+        document.getElementById('fog-effect').style.opacity = '0';
+        
+        // Clear light animations
+        clearCombinedLightIntervals();
+    }
+}
+
+// Create dual effects (snowflakes and halloween elements)
 function createDualEffects() {
     // Create both types of elements
-    createFallingElements('snowflake', ['❄', '❅', '❆', '*']);
-    createFallingElements('halloween-element', ['🦇', '🍂', '🕸️', '🕷️', '👻', '💀']);
+    createSnowflakes();
+    createHalloweenElements();
     
     // Create lights for both themes
     createChristmasLights();
     createHalloweenLights();
     
     // Apply combined light mode
-    setCombinedLightMode(state.lights.combined.mode);
+    setCombinedLightMode(currentCombinedLightMode);
     
     // Create combined corner decoration
     createCombinedCorner();
 }
 
-// Create combined corner decoration
+// Create combined corner decoration (tree with pumpkins)
 function createCombinedCorner() {
+    const combinedCorner = document.getElementById('combined-corner');
+    
     // Clear existing decorations
-    domCache.combined.corner.innerHTML = '';
+    combinedCorner.innerHTML = '';
     
-    // Performance optimization: Use innerHTML for complex structure
-    domCache.combined.corner.innerHTML = `
-        <div class="mini-tree">
-            <div class="tree-part"></div>
-            <div class="tree-part"></div>
-            <div class="tree-part"></div>
-            <div class="tree-trunk"></div>
-        </div>
-    `;
+    // Create mini tree (same as Christmas tree)
+    const miniTree = document.createElement('div');
+    miniTree.className = 'mini-tree';
+    miniTree.style.display = 'block';
     
-    const miniTree = domCache.combined.corner.querySelector('.mini-tree');
+    // Tree parts
+    for (let i = 0; i < 3; i++) {
+        const treePart = document.createElement('div');
+        treePart.className = 'tree-part';
+        miniTree.appendChild(treePart);
+    }
+    
+    // Tree trunk
+    const treeTrunk = document.createElement('div');
+    treeTrunk.className = 'tree-trunk';
+    miniTree.appendChild(treeTrunk);
+    
+    // Add tree to corner
+    combinedCorner.appendChild(miniTree);
     
     // Create 2-3 pumpkins near the tree
     const numPumpkins = Math.floor(Math.random() * 2) + 2;
-    
-    // Performance optimization: Use document fragment
-    const fragment = document.createDocumentFragment();
     
     for (let i = 0; i < numPumpkins; i++) {
         const pumpkin = document.createElement('div');
@@ -1128,30 +2180,59 @@ function createCombinedCorner() {
         const sizeFactor = 0.8 + (Math.random() * 0.4);
         pumpkin.style.transform = `scale(${sizeFactor})`;
         
-        // Create pumpkin elements with innerHTML for better performance
-        pumpkin.innerHTML = `
-            <div class="pumpkin-stem"></div>
-            <div class="pumpkin-face">
-                <div class="pumpkin-eyes">
-                    <div class="pumpkin-eye" ${Math.random() > 0.5 ? 'style="clip-path: polygon(50% 0%, 0% 100%, 100% 100%)"' : ''}></div>
-                    <div class="pumpkin-eye" ${Math.random() > 0.5 ? 'style="clip-path: polygon(50% 0%, 0% 100%, 100% 100%)"' : ''}></div>
-                </div>
-                <div class="pumpkin-mouth" ${Math.random() > 0.5 ? 'style="clip-path: polygon(0% 0%, 25% 100%, 50% 0%, 75% 100%, 100% 0%)"' : ''}></div>
-            </div>
-        `;
+        // Create stem
+        const stem = document.createElement('div');
+        stem.className = 'pumpkin-stem';
+        pumpkin.appendChild(stem);
         
-        fragment.appendChild(pumpkin);
+        // Create face
+        const face = document.createElement('div');
+        face.className = 'pumpkin-face';
+        
+        // Eyes
+        const eyes = document.createElement('div');
+        eyes.className = 'pumpkin-eyes';
+        
+        const eyeLeft = document.createElement('div');
+        eyeLeft.className = 'pumpkin-eye';
+        
+        const eyeRight = document.createElement('div');
+        eyeRight.className = 'pumpkin-eye';
+        
+        eyes.appendChild(eyeLeft);
+        eyes.appendChild(eyeRight);
+        
+        // Mouth
+        const mouth = document.createElement('div');
+        mouth.className = 'pumpkin-mouth';
+        
+        // Random face shape
+        if (Math.random() > 0.5) {
+            // Triangle eyes
+            eyeLeft.style.clipPath = 'polygon(50% 0%, 0% 100%, 100% 100%)';
+            eyeRight.style.clipPath = 'polygon(50% 0%, 0% 100%, 100% 100%)';
+        }
+        
+        if (Math.random() > 0.5) {
+            // Zigzag mouth
+            mouth.style.clipPath = 'polygon(0% 0%, 25% 100%, 50% 0%, 75% 100%, 100% 0%)';
+        }
+        
+        face.appendChild(eyes);
+        face.appendChild(mouth);
+        pumpkin.appendChild(face);
+        
+        combinedCorner.appendChild(pumpkin);
     }
     
-    // Append all pumpkins at once
-    domCache.combined.corner.appendChild(fragment);
-    
-    // Decorate tree with combined lights
+    // Add tree lights similar to Christmas tree decoration
     decorateCombinedTree();
 }
 
 // Decorate combined tree with both themed lights
 function decorateCombinedTree() {
+    const combinedCorner = document.getElementById('combined-corner');
+    
     // Combined colors from both themes
     const lightColors = [
         '#ff0000', // Red (Christmas)
@@ -1174,9 +2255,6 @@ function decorateCombinedTree() {
         { top: '85%', left: '50%' }
     ];
     
-    // Performance optimization: Use document fragment
-    const fragment = document.createDocumentFragment();
-    
     // Create lights
     positions.forEach((pos, i) => {
         const light = document.createElement('div');
@@ -1194,140 +2272,19 @@ function decorateCombinedTree() {
         const animDuration = 1 + Math.random() * 2;
         light.style.animation = `pulse ${animDuration}s infinite ${animDelay}s`;
         
-        fragment.appendChild(light);
+        combinedCorner.appendChild(light);
     });
-    
-    // Append all lights at once to the mini-tree inside the combined corner
-    const miniTree = domCache.combined.corner.querySelector('.mini-tree');
-    if (miniTree) {
-        miniTree.appendChild(fragment);
-    }
 }
 
-// Helper function to convert RGB to HEX format
-function rgbToHex(rgb) {
-    // If it's already a hex color, return it
-    if (rgb.startsWith('#')) return rgb;
-    
-    // Extract RGB values
-    const rgbValues = rgb.match(/\d+/g);
-    if (!rgbValues || rgbValues.length < 3) return '#000000';
-    
-    // Convert to hex
-    return '#' + 
-        parseInt(rgbValues[0]).toString(16).padStart(2, '0') +
-        parseInt(rgbValues[1]).toString(16).padStart(2, '0') +
-        parseInt(rgbValues[2]).toString(16).padStart(2, '0');
-}
-
-// Christmas light mode setter with performance optimizations
-function setLightMode(mode) {
-    state.lights.christmas.mode = mode;
-    domCache.christmas.lightModeLabel.textContent = `Light Mode: ${mode.charAt(0).toUpperCase() + mode.slice(1)}`;
-
-    // Clear previous animations
-    state.lights.christmas.intervals = clearAllIntervals(state.lights.christmas.intervals);
-
-    const lights = document.querySelectorAll('.christmas-light');
-    const lightsArray = Array.from(lights);
-
-    // Reset all lights - batch style changes with className
-    lightsArray.forEach(light => {
-        light.style.animation = '';
-        light.style.animationDelay = '';
-        light.style.opacity = '1';
-        light.style.transform = 'scale(1)';
-    });
-    
-    // Apply the specific light mode
-    switch (mode) {
-        case 'random':
-            applyRandomMode(lightsArray);
-            break;
-        case 'sequential':
-            applySequentialMode(lightsArray);
-            break;
-        case 'alternating':
-            applyAlternatingMode(lightsArray);
-            break;
-        case 'wave':
-            applyWaveMode(lightsArray);
-            break;
-        case 'chasing':
-            applyChasingMode(lightsArray);
-            break;
-        case 'colorgroups':
-            applyColorGroupsMode(lightsArray);
-            break;
-        case 'heartbeat':
-            applyHeartbeatMode(lightsArray);
-            break;
-        case 'morse':
-            applyMorseCodeMode(lightsArray);
-            break;
-        case 'rainbow':
-            applyRainbowMode(lightsArray);
-            break;
-        case 'cascade':
-            applyCascadeMode(lightsArray);
-            break;
-    }
-}
-
-// Halloween light mode setter with performance optimizations
-function setHalloweenLightMode(mode) {
-    state.lights.halloween.mode = mode;
-    domCache.halloween.lightModeLabel.textContent = `Light Mode: ${mode.charAt(0).toUpperCase() + mode.slice(1)}`;
-
-    // Clear previous animations
-    state.lights.halloween.intervals = clearAllIntervals(state.lights.halloween.intervals);
-
-    const lights = document.querySelectorAll('.halloween-light');
-    const lightsArray = Array.from(lights);
-
-    // Reset all lights
-    lightsArray.forEach(light => {
-        light.style.animation = '';
-        light.style.animationDelay = '';
-        light.style.opacity = '1';
-        light.style.transform = 'scale(1)';
-    });
-    
-    // Apply the specific Halloween light mode
-    switch (mode) {
-        case 'spooky':
-            applySpookyMode(lightsArray);
-            break;
-        case 'flicker':
-            applyFlickerMode(lightsArray);
-            break;
-        case 'pulse':
-            applyPulseMode(lightsArray);
-            break;
-        case 'thunder':
-            applyThunderMode(lightsArray);
-            break;
-        case 'colorshift':
-            applyColorShiftMode(lightsArray);
-            break;
-        case 'witch':
-            applyWitchMode(lightsArray);
-            break;
-        case 'zombie':
-            applyZombieMode(lightsArray);
-            break;
-    }
-}
-
-// Combined light mode setter
+// Combined light modes
 function setCombinedLightMode(mode) {
-    state.lights.combined.mode = mode;
-    domCache.combined.lightModeLabel.textContent = `Light Mode: ${mode.charAt(0).toUpperCase() + mode.slice(1)}`;
+    currentCombinedLightMode = mode;
+    document.getElementById('combined-light-label').textContent = `Light Mode: ${mode.charAt(0).toUpperCase() + mode.slice(1)}`;
     
     // Clear previous animations
-    state.lights.combined.intervals = clearAllIntervals(state.lights.combined.intervals);
-    state.lights.christmas.intervals = clearAllIntervals(state.lights.christmas.intervals);
-    state.lights.halloween.intervals = clearAllIntervals(state.lights.halloween.intervals);
+clearCombinedLightIntervals();
+    clearLightIntervals();
+    clearHalloweenLightIntervals();
     
     const christmasLights = document.querySelectorAll('.christmas-light');
     const halloweenLights = document.querySelectorAll('.halloween-light');
@@ -1340,7 +2297,6 @@ function setCombinedLightMode(mode) {
         light.style.transform = 'scale(1)';
     });
     
-    // Apply the specific combined light mode
     switch (mode) {
         case 'fusion':
             applyFusionMode(christmasLights, halloweenLights);
@@ -1372,951 +2328,63 @@ function setCombinedLightMode(mode) {
     }
 }
 
-// LIGHT MODE IMPLEMENTATIONS - CHRISTMAS
-
-// Random mode - lights randomly twinkle
-function applyRandomMode(lights) {
-    const animationPatterns = ['twinkle1', 'twinkle2', 'twinkle3', 'pulse'];
-
-    // Performance: Prepare all animation settings first
-    lights.forEach(light => {
-        // Random animation
-        const animationName = animationPatterns[Math.floor(Math.random() * animationPatterns.length)];
-        const animationDuration = 1 + Math.random() * 3; // 1-4 seconds
-        
-        // Apply animation settings
-        light.style.animation = `${animationName} ${animationDuration}s infinite`;
-        light.style.animationDelay = (Math.random() * 2) + 's';
-    });
-
-    // Use a more efficient timer approach with requestAnimationFrame
-    let lastUpdate = 0;
-    const interval = 200; // 200ms between updates
-    
-    function updateRandomLights(timestamp) {
-        if (timestamp - lastUpdate > interval) {
-            lastUpdate = timestamp;
-            
-            // Batch updates
-            lights.forEach(light => {
-                // Random chance to change state
-                if (Math.random() > 0.7) {
-                    light.style.opacity = Math.random() > 0.5 ? '1' : '0.3';
-                    light.style.transform = Math.random() > 0.5 ? 'scale(1.2)' : 'scale(0.8)';
-                }
-            });
-        }
-        
-        // Continue the animation loop if this mode is still active
-        if (state.lights.christmas.mode === 'random' && state.modes.christmas) {
-            requestAnimationFrame(updateRandomLights);
-        }
-    }
-    
-    requestAnimationFrame(updateRandomLights);
-}
-
-// Sequential mode - lights light up in sequence
-function applySequentialMode(lights) {
-    const lightsArray = Array.from(lights);
-    let currentIndex = 0;
-
-    // Turn off all lights initially
-    lightsArray.forEach(light => {
-        light.style.opacity = '0.3';
-    });
-
-    // Sequential pattern - better performance by using requestAnimationFrame
-    let lastUpdate = 0;
-    const interval = 100; // 100ms between updates
-    
-    function updateSequentialLights(timestamp) {
-        if (timestamp - lastUpdate > interval) {
-            lastUpdate = timestamp;
-            
-            // Reset previous light
-            if (currentIndex > 0) {
-                lightsArray[currentIndex - 1].style.opacity = '0.3';
-                lightsArray[currentIndex - 1].style.transform = 'scale(1)';
-            } else if (currentIndex === 0 && lightsArray.length > 0) {
-                lightsArray[lightsArray.length - 1].style.opacity = '0.3';
-                lightsArray[lightsArray.length - 1].style.transform = 'scale(1)';
-            }
-
-            // Light up current light
-            lightsArray[currentIndex].style.opacity = '1';
-            lightsArray[currentIndex].style.transform = 'scale(1.2)';
-
-            // Move to next light
-            currentIndex = (currentIndex + 1) % lightsArray.length;
-        }
-        
-        // Continue the animation loop if this mode is still active
-        if (state.lights.christmas.mode === 'sequential' && state.modes.christmas) {
-            requestAnimationFrame(updateSequentialLights);
-        }
-    }
-    
-    requestAnimationFrame(updateSequentialLights);
-}
-
-// Alternating mode - lights alternate between even and odd
-function applyAlternatingMode(lights) {
-    const lightsArray = Array.from(lights);
-    let isEvenActive = true;
-
-    // Initial state - all on
-    lightsArray.forEach(light => {
-        light.style.opacity = '1';
-    });
-
-    // Alternating pattern - better performance with requestAnimationFrame
-    let lastUpdate = 0;
-    const interval = 500; // 500ms between updates
-    
-    function updateAlternatingLights(timestamp) {
-        if (timestamp - lastUpdate > interval) {
-            lastUpdate = timestamp;
-            
-            // Batch DOM updates
-            lightsArray.forEach((light, index) => {
-                const isEven = index % 2 === 0;
-                if (isEven === isEvenActive) {
-                    light.style.opacity = '1';
-                    light.style.transform = 'scale(1.2)';
-                } else {
-                    light.style.opacity = '0.3';
-                    light.style.transform = 'scale(0.8)';
-                }
-            });
-            
-            isEvenActive = !isEvenActive;
-        }
-        
-        // Continue the animation loop if this mode is still active
-        if (state.lights.christmas.mode === 'alternating' && state.modes.christmas) {
-            requestAnimationFrame(updateAlternatingLights);
-        }
-    }
-    
-    requestAnimationFrame(updateAlternatingLights);
-}
-
-// Wave mode - creates a wave-like effect
-function applyWaveMode(lights) {
-    const lightsArray = Array.from(lights);
-
-    // Set up wave animation with optimized approach
-    lightsArray.forEach((light, index) => {
-        // Calculation for wave effect using CSS animation
-        const delay = (index * 0.1) % 2; // 0.1 second delay per light, repeat every 2 seconds
-        light.style.animation = 'pulse 2s infinite';
-        light.style.animationDelay = `${delay}s`;
-    });
-}
-
-// Chasing mode - lights move in chasing pattern
-function applyChasingMode(lights) {
-    const lightsArray = Array.from(lights);
-    const groupSize = 3; // Number of lights in each chase group
-    let position = 0;
-
-    // Turn off all lights initially
-    lightsArray.forEach(light => {
-        light.style.opacity = '0.3';
-    });
-
-    // Chasing pattern - better performance with requestAnimationFrame
-    let lastUpdate = 0;
-    const interval = 100; // 100ms between updates
-    
-    function updateChasingLights(timestamp) {
-        if (timestamp - lastUpdate > interval) {
-            lastUpdate = timestamp;
-            
-            // Reset all lights
-            lightsArray.forEach(light => {
-                light.style.opacity = '0.3';
-                light.style.transform = 'scale(0.8)';
-            });
-
-            // Light up the chase group
-            for (let i = 0; i < groupSize; i++) {
-                const lightIndex = (position + i) % lightsArray.length;
-                if (lightsArray[lightIndex]) {
-                    lightsArray[lightIndex].style.opacity = '1';
-                    lightsArray[lightIndex].style.transform = 'scale(1.2)';
-                }
-            }
-
-            // Move position forward
-            position = (position + 1) % lightsArray.length;
-        }
-        
-        // Continue the animation loop if this mode is still active
-        if (state.lights.christmas.mode === 'chasing' && state.modes.christmas) {
-            requestAnimationFrame(updateChasingLights);
-        }
-    }
-    
-    requestAnimationFrame(updateChasingLights);
-}
-
-// Color groups mode - lights of the same color blink together
-function applyColorGroupsMode(lights) {
-    const lightsArray = Array.from(lights);
-    
-    // Performance optimization: Group lights by color once
-    const colorGroups = {};
-    
-    lightsArray.forEach(light => {
-        const color = light.dataset.color;
-        if (!colorGroups[color]) {
-            colorGroups[color] = [];
-        }
-        colorGroups[color].push(light);
-    });
-    
-    // Turn all lights dim initially
-    lightsArray.forEach(light => {
-        light.style.opacity = '0.3';
-        light.style.transform = 'scale(0.8)';
-    });
-    
-    // Get array of color keys
-    const colorKeys = Object.keys(colorGroups);
-    let colorIndex = 0;
-    
-    // Color groups animation - better performance with requestAnimationFrame
-    let lastUpdate = 0;
-    const interval = 500; // 500ms between updates
-    
-    function updateColorGroups(timestamp) {
-        if (timestamp - lastUpdate > interval) {
-            lastUpdate = timestamp;
-            
-            // Reset all lights
-            lightsArray.forEach(light => {
-                light.style.opacity = '0.3';
-                light.style.transform = 'scale(0.8)';
-            });
-
-            // Activate current color group
-            const currentColor = colorKeys[colorIndex];
-            if (colorGroups[currentColor]) {
-                colorGroups[currentColor].forEach(light => {
-                    light.style.opacity = '1';
-                    light.style.transform = 'scale(1.2)';
-                });
-            }
-
-            // Move to next color
-            colorIndex = (colorIndex + 1) % colorKeys.length;
-        }
-        
-        // Continue the animation loop if this mode is still active
-        if (state.lights.christmas.mode === 'colorgroups' && state.modes.christmas) {
-            requestAnimationFrame(updateColorGroups);
-        }
-    }
-    
-    requestAnimationFrame(updateColorGroups);
-}
-
-// Heartbeat mode - pulse like a heartbeat
-function applyHeartbeatMode(lights) {
-    const lightsArray = Array.from(lights);
-    
-    // Set all lights to a dim state initially
-    lightsArray.forEach(light => {
-        light.style.opacity = '0.3';
-        light.style.transform = 'scale(0.8)';
-    });
-    
-    let step = 0;
-    
-    // Heartbeat animation - better performance with requestAnimationFrame
-    let lastUpdate = 0;
-    const interval = 400; // 400ms between updates
-    
-    function updateHeartbeat(timestamp) {
-        if (timestamp - lastUpdate > interval) {
-            lastUpdate = timestamp;
-            
-            if (step === 0 || step === 2) {
-                // First or second pulse - lights on
-                lightsArray.forEach(light => {
-                    light.style.opacity = '1';
-                    light.style.transform = 'scale(1.2)';
-                });
-            } else if (step === 1) {
-                // Brief pause between pulses
-                lightsArray.forEach(light => {
-                    light.style.opacity = '0.5';
-                    light.style.transform = 'scale(1)';
-                });
-            } else {
-                // Longer pause after second pulse
-                lightsArray.forEach(light => {
-                    light.style.opacity = '0.3';
-                    light.style.transform = 'scale(0.8)';
-                });
-            }
-
-            // Advance to next step in heartbeat pattern
-            step = (step + 1) % 4;
-        }
-        
-        // Continue the animation loop if this mode is still active
-        if (state.lights.christmas.mode === 'heartbeat' && state.modes.christmas) {
-            requestAnimationFrame(updateHeartbeat);
-        }
-    }
-    
-    requestAnimationFrame(updateHeartbeat);
-}
-
-// Morse code mode - "HO HO HO" in Morse code
-function applyMorseCodeMode(lights) {
-    const lightsArray = Array.from(lights);
-
-    // "HO HO HO" in Morse code: .... --- / .... --- / .... ---
-    const morsePattern = [
-        1, 0, 1, 0, 1, 0, 1, 0, // H (4 dots)
-        2, 0, 2, 0, 2, 0, // O (3 dashes)
-        0, 0, // Space
-        1, 0, 1, 0, 1, 0, 1, 0, // H
-        2, 0, 2, 0, 2, 0, // O
-        0, 0, // Space
-        1, 0, 1, 0, 1, 0, 1, 0, // H
-        2, 0, 2, 0, 2, 0, // O
-    ];
-
-    // Set all lights off initially
-    lightsArray.forEach(light => {
-        light.style.opacity = '0.3';
-        light.style.transform = 'scale(0.8)';
-    });
-
-    let patternIndex = 0;
-    let morseTimeout = null;
-    
-    function playMorseCode() {
-        const currentCode = morsePattern[patternIndex];
-        
-        if (currentCode === 1) {
-            // Dot - short flash
-            lightsArray.forEach(light => {
-                light.style.opacity = '1';
-                light.style.transform = 'scale(1.2)';
-            });
-            
-            morseTimeout = setTimeout(() => {
-                lightsArray.forEach(light => {
-                    light.style.opacity = '0.3';
-                    light.style.transform = 'scale(0.8)';
-                });
-                
-                // Move to next part of pattern
-                patternIndex = (patternIndex + 1) % morsePattern.length;
-                
-                // Continue if still in morse mode
-                if (state.lights.christmas.mode === 'morse' && state.modes.christmas) {
-                    morseTimeout = setTimeout(playMorseCode, 100);
-                }
-            }, 250); // Short duration for dot
-        } else if (currentCode === 2) {
-            // Dash - longer flash
-            lightsArray.forEach(light => {
-                light.style.opacity = '1';
-                light.style.transform = 'scale(1.2)';
-            });
-            
-            morseTimeout = setTimeout(() => {
-                lightsArray.forEach(light => {
-                    light.style.opacity = '0.3';
-                    light.style.transform = 'scale(0.8)';
-                });
-                
-                // Move to next part of pattern
-                patternIndex = (patternIndex + 1) % morsePattern.length;
-                
-                // Continue if still in morse mode
-                if (state.lights.christmas.mode === 'morse' && state.modes.christmas) {
-                    morseTimeout = setTimeout(playMorseCode, 100);
-                }
-            }, 550); // Longer duration for dash
-        } else {
-            // Space or gap - lights remain off
-            patternIndex = (patternIndex + 1) % morsePattern.length;
-            
-            // Continue if still in morse mode
-            if (state.lights.christmas.mode === 'morse' && state.modes.christmas) {
-                morseTimeout = setTimeout(playMorseCode, 100);
-            }
-        }
-    }
-    
-    // Start morse code
-    playMorseCode();
-    
-    // Store timeout to clear later
-    state.lights.christmas.intervals.push(morseTimeout);
-}
-
-// Rainbow mode - lights change colors in sequence
-function applyRainbowMode(lights) {
-    const lightsArray = Array.from(lights);
-    const rainbowColors = [
-        '#ff0000', // Red
-        '#ff7f00', // Orange
-        '#ffff00', // Yellow
-        '#00ff00', // Green
-        '#0000ff', // Blue
-        '#4b0082', // Indigo
-        '#9400d3'  // Violet
-    ];
-
-    // Set initial state
-    lightsArray.forEach((light, index) => {
-        const initialColorIndex = index % rainbowColors.length;
-        light.style.backgroundColor = rainbowColors[initialColorIndex];
-        light.style.boxShadow = `0 0 5px ${rainbowColors[initialColorIndex]}, 0 0 10px ${rainbowColors[initialColorIndex]}`;
-    });
-
-    let step = 0;
-    
-    // Rainbow animation - better performance with requestAnimationFrame
-    let lastUpdate = 0;
-    const interval = 200; // 200ms between updates
-    
-    function updateRainbow(timestamp) {
-        if (timestamp - lastUpdate > interval) {
-            lastUpdate = timestamp;
-            
-            // Batch update all lights
-            lightsArray.forEach((light, index) => {
-                const colorIndex = (index + step) % rainbowColors.length;
-                const color = rainbowColors[colorIndex];
-                
-                light.style.backgroundColor = color;
-                light.style.boxShadow = `0 0 5px ${color}, 0 0 10px ${color}`;
-            });
-            
-            step = (step + 1) % rainbowColors.length;
-        }
-        
-        // Continue the animation loop if this mode is still active
-        if (state.lights.christmas.mode === 'rainbow' && state.modes.christmas) {
-            requestAnimationFrame(updateRainbow);
-        }
-    }
-    
-    requestAnimationFrame(updateRainbow);
-}
-
-// Cascade mode - twinkling starts at one end and cascades
-function applyCascadeMode(lights) {
-    const lightsArray = Array.from(lights);
-    const numLights = lightsArray.length;
-    const waveWidth = Math.floor(numLights / 4); // Wave spans about 1/4 of the lights
-    let wavePosition = 0;
-
-    // Turn all lights to dim initially
-    lightsArray.forEach(light => {
-        light.style.opacity = '0.3';
-        light.style.transform = 'scale(0.8)';
-    });
-
-    // Cascade animation - better performance with requestAnimationFrame
-    let lastUpdate = 0;
-    const interval = 100; // 100ms between updates
-    
-    function updateCascade(timestamp) {
-        if (timestamp - lastUpdate > interval) {
-            lastUpdate = timestamp;
-            
-            // Reset all lights
-            lightsArray.forEach(light => {
-                light.style.opacity = '0.3';
-                light.style.transform = 'scale(0.8)';
-            });
-
-            // Create the wave effect
-            for (let i = 0; i < waveWidth; i++) {
-                const pos = (wavePosition + i) % numLights;
-                // Calculate intensity based on position in wave (brightest at center)
-                const intensity = 1 - Math.abs((i - waveWidth / 2) / (waveWidth / 2));
-
-                if (lightsArray[pos]) {
-                    lightsArray[pos].style.opacity = Math.max(0.3, intensity).toString();
-                    lightsArray[pos].style.transform = `scale(${0.8 + 0.4 * intensity})`;
-                }
-            }
-
-            // Move the wave
-            wavePosition = (wavePosition + 1) % numLights;
-        }
-        
-        // Continue the animation loop if this mode is still active
-        if (state.lights.christmas.mode === 'cascade' && state.modes.christmas) {
-            requestAnimationFrame(updateCascade);
-        }
-    }
-    
-    requestAnimationFrame(updateCascade);
-}
-
-// HALLOWEEN LIGHT MODES
-
-// Spooky mode - random flickering
-function applySpookyMode(lights) {
-    const lightsArray = Array.from(lights);
-
-    // Set up individual light animations
-    lightsArray.forEach(light => {
-        // Random flickering
-        const randomFlickerSpeed = 0.5 + Math.random() * 2;
-        light.style.animation = `twinkle${Math.floor(Math.random() * 3) + 1} ${randomFlickerSpeed}s infinite`;
-        light.style.animationDelay = (Math.random() * 2) + 's';
-    });
-
-    // Occasional random dimming - better performance with requestAnimationFrame
-    let lastUpdate = 0;
-    const interval = 200; // 200ms between updates
-    
-    function updateSpooky(timestamp) {
-        if (timestamp - lastUpdate > interval) {
-            lastUpdate = timestamp;
-            
-            // Batch update lights that need dimming
-            const updateLights = [];
-            
-            lightsArray.forEach(light => {
-                if (Math.random() > 0.8) {
-                    updateLights.push({
-                        light,
-                        opacity: Math.random() * 0.7 + 0.3
-                    });
-                }
-            });
-            
-            // Apply updates
-            updateLights.forEach(update => {
-                update.light.style.opacity = update.opacity;
-            });
-        }
-        
-        // Continue the animation loop if this mode is still active
-        if (state.lights.halloween.mode === 'spooky' && state.modes.halloween) {
-            requestAnimationFrame(updateSpooky);
-        }
-    }
-    
-    requestAnimationFrame(updateSpooky);
-}
-
-// Flicker mode - lights rapidly turn on and off randomly
-function applyFlickerMode(lights) {
-    const lightsArray = Array.from(lights);
-
-    // Set all lights dim initially
-    lightsArray.forEach(light => {
-        light.style.opacity = '0.3';
-    });
-
-    // Rapid random flickering - better performance with requestAnimationFrame
-    let lastUpdate = 0;
-    const interval = 100; // 100ms between updates
-    
-    function updateFlicker(timestamp) {
-        if (timestamp - lastUpdate > interval) {
-            lastUpdate = timestamp;
-            
-            // Batch update lights
-            lightsArray.forEach(light => {
-                if (Math.random() > 0.5) {
-                    light.style.opacity = Math.random() > 0.5 ? '1' : '0.1';
-                }
-            });
-        }
-        
-        // Continue the animation loop if this mode is still active
-        if (state.lights.halloween.mode === 'flicker' && state.modes.halloween) {
-            requestAnimationFrame(updateFlicker);
-        }
-    }
-    
-    requestAnimationFrame(updateFlicker);
-}
-
-// Pulse mode - all lights pulse together like a heartbeat
-function applyPulseMode(lights) {
-    const lightsArray = Array.from(lights);
-    let pulseState = 0;
-    
-    // Pulse animation - better performance with requestAnimationFrame
-    let lastUpdate = 0;
-    const interval = 800; // 800ms between updates
-    
-    function updatePulse(timestamp) {
-        if (timestamp - lastUpdate > interval) {
-            lastUpdate = timestamp;
-            
-            switch (pulseState) {
-                case 0: // First beat
-                    lightsArray.forEach(light => {
-                        light.style.opacity = '1';
-                        light.style.transform = 'scale(1.2)';
-                    });
-                    pulseState = 1;
-                    setTimeout(() => pulseState = 2, 100);
-                    break;
-                case 2: // Back to dim
-                    lightsArray.forEach(light => {
-                        light.style.opacity = '0.3';
-                        light.style.transform = 'scale(0.8)';
-                    });
-                    pulseState = 3;
-                    setTimeout(() => pulseState = 4, 300);
-                    break;
-                case 4: // Second beat
-                    lightsArray.forEach(light => {
-                        light.style.opacity = '1';
-                        light.style.transform = 'scale(1.2)';
-                    });
-                    pulseState = 5;
-                    setTimeout(() => pulseState = 6, 100);
-                    break;
-                case 6: // Back to dim for longer pause
-                    lightsArray.forEach(light => {
-                        light.style.opacity = '0.3';
-                        light.style.transform = 'scale(0.8)';
-                    });
-                    pulseState = 0;
-                    break;
-            }
-        }
-        
-        // Continue the animation loop if this mode is still active
-        if (state.lights.halloween.mode === 'pulse' && state.modes.halloween) {
-            requestAnimationFrame(updatePulse);
-        }
-    }
-    
-    requestAnimationFrame(updatePulse);
-}
-
-// Thunder mode - occasional flashes of all lights
-function applyThunderMode(lights) {
-    const lightsArray = Array.from(lights);
-
-    // Set all lights dim initially
-    lightsArray.forEach(light => {
-        light.style.opacity = '0.3';
-        light.style.transform = 'scale(0.8)';
-    });
-
-    // Lightning flash function - more efficient with optimized timeouts
-    function lightningFlash() {
-        // All lights flash bright
-        lightsArray.forEach(light => {
-            light.style.opacity = '1';
-            light.style.transform = 'scale(1.2)';
-        });
-
-        // Dim after short time
-        setTimeout(() => {
-            lightsArray.forEach(light => {
-                light.style.opacity = '0.3';
-                light.style.transform = 'scale(0.8)';
-            });
-            
-            // Secondary flash sometimes
-            if (Math.random() > 0.5) {
-                setTimeout(() => {
-                    lightsArray.forEach(light => {
-                        light.style.opacity = '1';
-                        light.style.transform = 'scale(1.2)';
-                    });
-
-                    setTimeout(() => {
-                        lightsArray.forEach(light => {
-                            light.style.opacity = '0.3';
-                            light.style.transform = 'scale(0.8)';
-                        });
-                    }, 100);
-                }, 300);
-            }
-
-            // Schedule next flash if still in thunder mode
-            if (state.lights.halloween.mode === 'thunder' && state.modes.halloween) {
-                const nextFlash = 3000 + Math.random() * 10000; // 3-13 seconds
-                setTimeout(lightningFlash, nextFlash);
-            }
-        }, 200);
-    }
-
-    // Start the lightning
-    lightningFlash();
-}
-
-// Color shift mode - colors gradually shift
-function applyColorShiftMode(lights) {
-    const lightsArray = Array.from(lights);
-    const colors = [
-        '#ff6600', // Orange
-        '#6600cc', // Purple
-        '#00cc00', // Toxic green
-        '#ff0000', // Blood red
-        '#66ccff', // Ghost blue
-        '#ffcc00'  // Pumpkin gold
-    ];
-
-    // Start with random colors
-    lightsArray.forEach(light => {
-        const randomColor = colors[Math.floor(Math.random() * colors.length)];
-        light.style.backgroundColor = randomColor;
-        light.style.boxShadow = `0 0 5px ${randomColor}, 0 0 10px ${randomColor}`;
-    });
-
-    // Gradually shift colors - better performance with requestAnimationFrame
-    let lastUpdate = 0;
-    const interval = 500; // 500ms between updates
-    
-    function updateColorShift(timestamp) {
-        if (timestamp - lastUpdate > interval) {
-            lastUpdate = timestamp;
-            
-            // Batch update lights that need color shifts
-            const updates = [];
-            
-            lightsArray.forEach(light => {
-                if (Math.random() > 0.8) {
-                    const currentColor = light.style.backgroundColor;
-                    let currentIndex = -1;
-                    
-                    // Find the index of the current color
-                    for (let i = 0; i < colors.length; i++) {
-                        if (rgbToHex(currentColor) === colors[i]) {
-                            currentIndex = i;
-                            break;
-                        }
-                    }
-                    
-                    // If color not found or at end of array, pick random color
-                    const newColorIndex = (currentIndex !== -1) ? 
-                        (currentIndex + 1) % colors.length : 
-                        Math.floor(Math.random() * colors.length);
-                        
-                    const newColor = colors[newColorIndex];
-                    
-                    updates.push({
-                        light,
-                        color: newColor
-                    });
-                }
-            });
-            
-            // Apply all updates at once
-            updates.forEach(update => {
-                update.light.style.backgroundColor = update.color;
-                update.light.style.boxShadow = `0 0 5px ${update.color}, 0 0 10px ${update.color}`;
-            });
-        }
-        
-        // Continue the animation loop if this mode is still active
-        if (state.lights.halloween.mode === 'colorshift' && state.modes.halloween) {
-            requestAnimationFrame(updateColorShift);
-        }
-    }
-    
-    requestAnimationFrame(updateColorShift);
-}
-
-// Witch mode - green and purple alternating pattern
-function applyWitchMode(lights) {
-    const lightsArray = Array.from(lights);
-    const witchColors = ['#00cc00', '#6600cc']; // Green and purple
-    let isFirstGroupActive = true;
-
-    // Set colors alternating
-    lightsArray.forEach((light, index) => {
-        const color = witchColors[index % 2];
-        light.style.backgroundColor = color;
-        light.style.boxShadow = `0 0 5px ${color}, 0 0 10px ${color}`;
-    });
-
-    // Witch mode animation - better performance with requestAnimationFrame
-    let lastUpdate = 0;
-    const interval = 500; // 500ms between updates
-    
-    function updateWitchMode(timestamp) {
-        if (timestamp - lastUpdate > interval) {
-            lastUpdate = timestamp;
-            
-            // Batch update all lights
-            lightsArray.forEach((light, index) => {
-                const isInFirstGroup = index % 2 === 0;
-
-                if (isInFirstGroup === isFirstGroupActive) {
-                    light.style.opacity = '1';
-                    light.style.transform = 'scale(1.2)';
-                } else {
-                    light.style.opacity = '0.3';
-                    light.style.transform = 'scale(0.8)';
-                }
-            });
-
-            isFirstGroupActive = !isFirstGroupActive;
-        }
-        
-        // Continue the animation loop if this mode is still active
-        if (state.lights.halloween.mode === 'witch' && state.modes.halloween) {
-            requestAnimationFrame(updateWitchMode);
-        }
-    }
-    
-    requestAnimationFrame(updateWitchMode);
-}
-
-// Zombie mode - sickly green pulsing
-function applyZombieMode(lights) {
-    const lightsArray = Array.from(lights);
-    const zombieGreen = '#39ff14'; // Toxic green
-    let intensity = 0;
-    let increasing = true;
-
-    // Set all lights to zombie green
-    lightsArray.forEach(light => {
-        light.style.backgroundColor = zombieGreen;
-        light.style.boxShadow = `0 0 5px ${zombieGreen}, 0 0 10px ${zombieGreen}`;
-    });
-
-    // Zombie mode animation - better performance with requestAnimationFrame
-    let lastUpdate = 0;
-    const interval = 200; // 200ms between updates
-    
-    function updateZombieMode(timestamp) {
-        if (timestamp - lastUpdate > interval) {
-            lastUpdate = timestamp;
-            
-            if (increasing) {
-                intensity += 0.1;
-                if (intensity >= 1) {
-                    intensity = 1;
-                    increasing = false;
-                }
-            } else {
-                intensity -= 0.1;
-                if (intensity <= 0.3) {
-                    intensity = 0.3;
-                    increasing = true;
-                }
-            }
-
-            // Batch update all lights with the same intensity
-            lightsArray.forEach(light => {
-                light.style.opacity = intensity.toString();
-                light.style.transform = `scale(${0.8 + (0.4 * intensity)})`;
-            });
-        }
-        
-        // Continue the animation loop if this mode is still active
-        if (state.lights.halloween.mode === 'zombie' && state.modes.halloween) {
-            requestAnimationFrame(updateZombieMode);
-        }
-    }
-    
-    requestAnimationFrame(updateZombieMode);
-}
-
-// COMBINED LIGHT MODES
-
 // Fusion mode - synchronized pulses across all lights
 function applyFusionMode(christmasLights, halloweenLights) {
     const allLights = [...christmasLights, ...halloweenLights];
+    
     let pulseState = true;
-    
-    // Fusion mode animation - better performance with requestAnimationFrame
-    let lastUpdate = 0;
-    const interval = 800; // 800ms between updates
-    
-    function updateFusion(timestamp) {
-        if (timestamp - lastUpdate > interval) {
-            lastUpdate = timestamp;
-            
-            // Batch update all lights
-            allLights.forEach(light => {
-                if (pulseState) {
-                    light.style.opacity = '1';
-                    light.style.transform = 'scale(1.2)';
-                } else {
-                    light.style.opacity = '0.4';
-                    light.style.transform = 'scale(0.8)';
-                }
-            });
-            
-            pulseState = !pulseState;
-        }
+    const interval = setInterval(() => {
+        allLights.forEach(light => {
+            if (pulseState) {
+                light.style.opacity = '1';
+                light.style.transform = 'scale(1.2)';
+            } else {
+                light.style.opacity = '0.4';
+                light.style.transform = 'scale(0.8)';
+            }
+        });
         
-        // Continue the animation loop if this mode is still active
-        if (state.lights.combined.mode === 'fusion' && state.modes.combined) {
-            requestAnimationFrame(updateFusion);
-        }
-    }
+        pulseState = !pulseState;
+    }, 800);
     
-    requestAnimationFrame(updateFusion);
+    combinedLightIntervals.push(interval);
 }
 
 // Alternating theme mode - Christmas and Halloween lights alternate
 function applyAlternatingThemeMode(christmasLights, halloweenLights) {
     let christmasActive = true;
     
-    // Alternating theme mode animation - better performance with requestAnimationFrame
-    let lastUpdate = 0;
-    const interval = 1000; // 1000ms between updates
-    
-    function updateAlternatingTheme(timestamp) {
-        if (timestamp - lastUpdate > interval) {
-            lastUpdate = timestamp;
+    const interval = setInterval(() => {
+        if (christmasActive) {
+            // Activate Christmas lights
+            christmasLights.forEach(light => {
+                light.style.opacity = '1';
+                light.style.transform = 'scale(1.2)';
+            });
             
-            if (christmasActive) {
-                // Activate Christmas lights
-                christmasLights.forEach(light => {
-                    light.style.opacity = '1';
-                    light.style.transform = 'scale(1.2)';
-                });
-                
-                // Dim Halloween lights
-                halloweenLights.forEach(light => {
-                    light.style.opacity = '0.3';
-                    light.style.transform = 'scale(0.8)';
-                });
-            } else {
-                // Activate Halloween lights
-                halloweenLights.forEach(light => {
-                    light.style.opacity = '1';
-                    light.style.transform = 'scale(1.2)';
-                });
-                
-                // Dim Christmas lights
-                christmasLights.forEach(light => {
-                    light.style.opacity = '0.3';
-                    light.style.transform = 'scale(0.8)';
-                });
-            }
+            // Dim Halloween lights
+            halloweenLights.forEach(light => {
+                light.style.opacity = '0.3';
+                light.style.transform = 'scale(0.8)';
+            });
+        } else {
+            // Activate Halloween lights
+            halloweenLights.forEach(light => {
+                light.style.opacity = '1';
+                light.style.transform = 'scale(1.2)';
+            });
             
-            christmasActive = !christmasActive;
+            // Dim Christmas lights
+            christmasLights.forEach(light => {
+                light.style.opacity = '0.3';
+                light.style.transform = 'scale(0.8)';
+            });
         }
         
-        // Continue the animation loop if this mode is still active
-        if (state.lights.combined.mode === 'alternating' && state.modes.combined) {
-            requestAnimationFrame(updateAlternatingTheme);
-        }
-    }
+        christmasActive = !christmasActive;
+    }, 1000);
     
-    requestAnimationFrame(updateAlternatingTheme);
+    combinedLightIntervals.push(interval);
 }
 
 // Dualtone mode - red/green for Christmas, orange/purple for Halloween simultaneously
@@ -2341,37 +2409,22 @@ function applyDualtoneMode(christmasLights, halloweenLights) {
     
     // Alternating blink pattern for both sets
     let evenActive = true;
+    const interval = setInterval(() => {
+        [...christmasLights, ...halloweenLights].forEach((light, index) => {
+            const isEven = index % 2 === 0;
+            if (isEven === evenActive) {
+                light.style.opacity = '1';
+                light.style.transform = 'scale(1.2)';
+            } else {
+                light.style.opacity = '0.3';
+                light.style.transform = 'scale(0.8)';
+            }
+        });
     
-    // Dualtone mode animation - better performance with requestAnimationFrame
-    let lastUpdate = 0;
-    const interval = 500; // 500ms between updates
-    
-    function updateDualtone(timestamp) {
-        if (timestamp - lastUpdate > interval) {
-            lastUpdate = timestamp;
-            
-            // Batch update all lights
-            [...christmasLights, ...halloweenLights].forEach((light, index) => {
-                const isEven = index % 2 === 0;
-                if (isEven === evenActive) {
-                    light.style.opacity = '1';
-                    light.style.transform = 'scale(1.2)';
-                } else {
-                    light.style.opacity = '0.3';
-                    light.style.transform = 'scale(0.8)';
-                }
-            });
-        
-            evenActive = !evenActive;
-        }
-        
-        // Continue the animation loop if this mode is still active
-        if (state.lights.combined.mode === 'dualtone' && state.modes.combined) {
-            requestAnimationFrame(updateDualtone);
-        }
-    }
-    
-    requestAnimationFrame(updateDualtone);
+        evenActive = !evenActive;
+    }, 500);
+
+ combinedLightIntervals.push(interval);
 }
 
 // Chaotic mode - random flickering with combined colors
@@ -2397,64 +2450,29 @@ function applyChaoticMode(christmasLights, halloweenLights) {
         light.style.boxShadow = `0 0 5px ${randomColor}, 0 0 10px ${randomColor}`;
     });
     
-    // Chaotic mode animation - better performance with requestAnimationFrame
-    let lastUpdate = 0;
-    const interval = 100; // 100ms between updates
+    // Random chaotic changes
+    const interval = setInterval(() => {
+        allLights.forEach(light => {
+            // 20% chance to change color
+            if (Math.random() < 0.2) {
+                const newColor = combinedColors[Math.floor(Math.random() * combinedColors.length)];
+                light.style.backgroundColor = newColor;
+                light.style.boxShadow = `0 0 5px ${newColor}, 0 0 10px ${newColor}`;
+            }
+            
+            // 30% chance to change brightness
+            if (Math.random() < 0.3) {
+                light.style.opacity = (0.3 + Math.random() * 0.7).toString();
+            }
+            
+            // 20% chance to change size
+            if (Math.random() < 0.2) {
+                light.style.transform = `scale(${0.8 + Math.random() * 0.4})`;
+            }
+        });
+    }, 100);
     
-    function updateChaotic(timestamp) {
-        if (timestamp - lastUpdate > interval) {
-            lastUpdate = timestamp;
-            
-            // Prepare updates
-            const updates = [];
-            
-            allLights.forEach(light => {
-                const update = { light };
-                
-                // 20% chance to change color
-                if (Math.random() < 0.2) {
-                    const newColor = combinedColors[Math.floor(Math.random() * combinedColors.length)];
-                    update.color = newColor;
-                }
-                
-                // 30% chance to change brightness
-                if (Math.random() < 0.3) {
-                    update.opacity = (0.3 + Math.random() * 0.7).toString();
-                }
-                
-                // 20% chance to change size
-                if (Math.random() < 0.2) {
-                    update.transform = `scale(${0.8 + Math.random() * 0.4})`;
-                }
-                
-                // Add to updates if any property changed
-                if (update.color || update.opacity || update.transform) {
-                    updates.push(update);
-                }
-            });
-            
-            // Apply all updates at once
-            updates.forEach(update => {
-                if (update.color) {
-                    update.light.style.backgroundColor = update.color;
-                    update.light.style.boxShadow = `0 0 5px ${update.color}, 0 0 10px ${update.color}`;
-                }
-                if (update.opacity) {
-                    update.light.style.opacity = update.opacity;
-                }
-                if (update.transform) {
-                    update.light.style.transform = update.transform;
-                }
-            });
-        }
-        
-        // Continue the animation loop if this mode is still active
-        if (state.lights.combined.mode === 'chaotic' && state.modes.combined) {
-            requestAnimationFrame(updateChaotic);
-        }
-    }
-    
-    requestAnimationFrame(updateChaotic);
+    combinedLightIntervals.push(interval);
 }
 
 // Seasonal mode - Christmas and Halloween lights interact to tell a story
@@ -2463,81 +2481,68 @@ function applySeasonalMode(christmasLights, halloweenLights) {
     let step = 0;
     const totalSteps = 8;
     
-    // Seasonal mode animation - better performance with requestAnimationFrame
-    let lastUpdate = 0;
-    const interval = 1500; // 1500ms between updates
-    
-    function updateSeasonal(timestamp) {
-        if (timestamp - lastUpdate > interval) {
-            lastUpdate = timestamp;
-            
-            switch (step % totalSteps) {
-                case 0: // Halloween starts (only Halloween lights)
-                    christmasLights.forEach(light => {
-                        light.style.opacity = '0.1';
-                    });
-                    halloweenLights.forEach(light => {
-                        light.style.opacity = '1';
-                        light.style.transform = 'scale(1.2)';
-                    });
-                    break;
-                case 1: // Halloween fades
-                    halloweenLights.forEach(light => {
-                        light.style.opacity = '0.5';
-                        light.style.transform = 'scale(1)';
-                    });
-                    break;
-                case 2: // Transition - all lights dim
-                    allLights.forEach(light => {
-                        light.style.opacity = '0.3';
-                        light.style.transform = 'scale(0.8)';
-                    });
-                    break;
-                case 3: // Christmas starts to appear
-                    christmasLights.forEach(light => {
-                        light.style.opacity = '0.7';
-                        light.style.transform = 'scale(1)';
-                    });
-                    break;
-                case 4: // Christmas dominates
-                    christmasLights.forEach(light => {
-                        light.style.opacity = '1';
-                        light.style.transform = 'scale(1.2)';
-                    });
-                    halloweenLights.forEach(light => {
-                        light.style.opacity = '0.1';
-                    });
-                    break;
-                case 5: // Christmas fades a bit
-                    christmasLights.forEach(light => {
-                        light.style.opacity = '0.5';
-                        light.style.transform = 'scale(1)';
-                    });
-                    break;
-                case 6: // Both combine
-                    allLights.forEach(light => {
-                        light.style.opacity = '0.8';
-                        light.style.transform = 'scale(1.1)';
-                    });
-                    break;
-                case 7: // Big finale - all bright
-                    allLights.forEach(light => {
-                        light.style.opacity = '1';
-                        light.style.transform = 'scale(1.2)';
-                    });
-                    break;
-            }
-            
-            step = (step + 1) % totalSteps;
+    const interval = setInterval(() => {
+        switch (step % totalSteps) {
+            case 0: // Halloween starts (only Halloween lights)
+                christmasLights.forEach(light => {
+                    light.style.opacity = '0.1';
+                });
+                halloweenLights.forEach(light => {
+                    light.style.opacity = '1';
+                    light.style.transform = 'scale(1.2)';
+                });
+                break;
+            case 1: // Halloween fades
+                halloweenLights.forEach(light => {
+                    light.style.opacity = '0.5';
+                    light.style.transform = 'scale(1)';
+                });
+                break;
+            case 2: // Transition - all lights dim
+                allLights.forEach(light => {
+                    light.style.opacity = '0.3';
+                    light.style.transform = 'scale(0.8)';
+                });
+                break;
+            case 3: // Christmas starts to appear
+                christmasLights.forEach(light => {
+                    light.style.opacity = '0.7';
+                    light.style.transform = 'scale(1)';
+                });
+                break;
+            case 4: // Christmas dominates
+                christmasLights.forEach(light => {
+                    light.style.opacity = '1';
+                    light.style.transform = 'scale(1.2)';
+                });
+                halloweenLights.forEach(light => {
+                    light.style.opacity = '0.1';
+                });
+                break;
+            case 5: // Christmas fades a bit
+                christmasLights.forEach(light => {
+                    light.style.opacity = '0.5';
+                    light.style.transform = 'scale(1)';
+                });
+                break;
+            case 6: // Both combine
+                allLights.forEach(light => {
+                    light.style.opacity = '0.8';
+                    light.style.transform = 'scale(1.1)';
+                });
+                break;
+            case 7: // Big finale - all bright
+                allLights.forEach(light => {
+                    light.style.opacity = '1';
+                    light.style.transform = 'scale(1.2)';
+                });
+                break;
         }
         
-        // Continue the animation loop if this mode is still active
-        if (state.lights.combined.mode === 'seasonal' && state.modes.combined) {
-            requestAnimationFrame(updateSeasonal);
-        }
-    }
+        step = (step + 1) % totalSteps;
+    }, 1500);
     
-    requestAnimationFrame(updateSeasonal);
+    combinedLightIntervals.push(interval);
 }
 
 // Festive mode - joyful and bright theme
@@ -2553,22 +2558,19 @@ function applyFestiveMode(christmasLights, halloweenLights) {
     ];
     
     // Set festive colors
-    const allLights = [...christmasLights, ...halloweenLights];
-    
-    allLights.forEach((light, index) => {
+    [...christmasLights, ...halloweenLights].forEach((light, index) => {
         const color = festiveColors[index % festiveColors.length];
         light.style.backgroundColor = color;
         light.style.boxShadow = `0 0 5px ${color}, 0 0 10px ${color}`;
     });
     
     // Create a wave pattern across all lights
-    // Sort lights by position for proper wave
-    const sortedLights = allLights.sort((a, b) => {
+    const allLights = [...christmasLights, ...halloweenLights].sort((a, b) => {
         return parseInt(a.style.left) - parseInt(b.style.left);
     });
     
-    // Wave animation using CSS animations for each light
-    sortedLights.forEach((light, index) => {
+    // Wave animation
+    allLights.forEach((light, index) => {
         // Calculation for wave effect
         const delay = (index * 0.1) % 3; // 0.1 second delay per light, repeat every 3 seconds
         light.style.animation = 'pulse 3s infinite';
@@ -2598,44 +2600,20 @@ function applySpookymasMode(christmasLights, halloweenLights) {
         light.style.animationDelay = (Math.random() * 2) + 's';
     });
     
-    // Occasional random dimming - better performance with requestAnimationFrame
-    let lastUpdate = 0;
-    const interval = 200; // 200ms between updates
+    // Occasional random dimming like in spooky mode
+    const interval = setInterval(() => {
+        allLights.forEach(light => {
+            if (Math.random() > 0.8) {
+                light.style.opacity = Math.random() * 0.7 + 0.3;
+            }
+        });
+    }, 200);
     
-    function updateSpookymas(timestamp) {
-        if (timestamp - lastUpdate > interval) {
-            lastUpdate = timestamp;
-            
-            // Batch update lights that need dimming
-            const updates = [];
-            
-            allLights.forEach(light => {
-                if (Math.random() > 0.8) {
-                    updates.push({
-                        light,
-                        opacity: Math.random() * 0.7 + 0.3
-                    });
-                }
-            });
-            
-            // Apply updates
-            updates.forEach(update => {
-                update.light.style.opacity = update.opacity;
-            });
-        }
-        
-        // Continue the animation loop if this mode is still active
-        if (state.lights.combined.mode === 'spookymas' && state.modes.combined) {
-            requestAnimationFrame(updateSpookymas);
-        }
-    }
-    
-    requestAnimationFrame(updateSpookymas);
+    combinedLightIntervals.push(interval);
 }
 
 // Candy Cane mode - red and white alternating pattern
 function applyCandycaneMode(christmasLights, halloweenLights) {
-    // Sort all lights by position
     const allLights = [...christmasLights, ...halloweenLights].sort((a, b) => {
         return parseInt(a.style.left) - parseInt(b.style.left);
     });
@@ -2652,37 +2630,22 @@ function applyCandycaneMode(christmasLights, halloweenLights) {
     
     // Rotating pattern - lights move like on a barber pole
     let offset = 0;
-    
-    // Candycane mode animation - better performance with requestAnimationFrame
-    let lastUpdate = 0;
-    const interval = 500; // 500ms between updates
-    
-    function updateCandycane(timestamp) {
-        if (timestamp - lastUpdate > interval) {
-            lastUpdate = timestamp;
+    const interval = setInterval(() => {
+        allLights.forEach((light, index) => {
+            const colorIndex = (index + offset) % 2;
+            const color = candyCaneColors[colorIndex];
             
-            // Batch update all lights
-            allLights.forEach((light, index) => {
-                const colorIndex = (index + offset) % 2;
-                const color = candyCaneColors[colorIndex];
-                
-                light.style.backgroundColor = color;
-                light.style.boxShadow = `0 0 5px ${color}, 0 0 10px ${color}`;
-                
-                // Full brightness for all
-                light.style.opacity = '1';
-            });
+            light.style.backgroundColor = color;
+            light.style.boxShadow = `0 0 5px ${color}, 0 0 10px ${color}`;
             
-            offset = (offset + 1) % 2;
-        }
+            // Full brightness for all
+            light.style.opacity = '1';
+        });
         
-        // Continue the animation loop if this mode is still active
-        if (state.lights.combined.mode === 'candycane' && state.modes.combined) {
-            requestAnimationFrame(updateCandycane);
-        }
-    }
+        offset = (offset + 1) % 2;
+    }, 500);
     
-    requestAnimationFrame(updateCandycane);
+    combinedLightIntervals.push(interval);
 }
 
 // Haunted mode - flickering with thunder effects
@@ -2703,9 +2666,7 @@ function applyHauntedMode(christmasLights, halloweenLights) {
         light.style.transform = 'scale(0.8)';
     });
     
-    // Lightning flash effect using improved timeouts
-    let lightningTimeout = null;
-    
+    // Lightning flash effect
     function lightningFlash() {
         // All lights flash bright
         allLights.forEach(light => {
@@ -2714,10 +2675,10 @@ function applyHauntedMode(christmasLights, halloweenLights) {
         });
         
         // Flash the background too
-        domCache.halloween.thunderFlash.style.animation = 'lightning-flash 1s';
+        document.getElementById('thunder-flash').style.animation = 'lightning-flash 1s';
         
         // Dim after short time
-        lightningTimeout = setTimeout(() => {
+        setTimeout(() => {
             allLights.forEach(light => {
                 light.style.opacity = '0.3';
                 light.style.transform = 'scale(0.8)';
@@ -2725,13 +2686,13 @@ function applyHauntedMode(christmasLights, halloweenLights) {
             
             // Secondary flash sometimes
             if (Math.random() > 0.5) {
-                lightningTimeout = setTimeout(() => {
+                setTimeout(() => {
                     allLights.forEach(light => {
                         light.style.opacity = '1';
                         light.style.transform = 'scale(1.2)';
                     });
                     
-                    lightningTimeout = setTimeout(() => {
+                    setTimeout(() => {
                         allLights.forEach(light => {
                             light.style.opacity = '0.3';
                             light.style.transform = 'scale(0.8)';
@@ -2739,336 +2700,98 @@ function applyHauntedMode(christmasLights, halloweenLights) {
                     }, 100);
                 }, 300);
             }
-            
-            // Schedule next flash if still in haunted mode
-            if (state.lights.combined.mode === 'haunted' && state.modes.combined) {
-                const nextFlash = 3000 + Math.random() * 10000; // 3-13 seconds
-                lightningTimeout = setTimeout(lightningFlash, nextFlash);
-            }
         }, 200);
         
-        // Store timeout for cleanup
-        state.lights.combined.intervals.push(lightningTimeout);
+        // Schedule next flash
+        const nextFlash = 3000 + Math.random() * 10000; // 3-13 seconds
+        if (combinedModeEnabled) {
+            setTimeout(lightningFlash, nextFlash);
+        }
     }
     
     // Start the lightning
     lightningFlash();
     
-    // Random subtle flickers between lightning - better performance with requestAnimationFrame
-    let lastUpdate = 0;
-    const interval = 200; // 200ms between updates
+    // Random subtle flickers between lightning
+    const interval = setInterval(() => {
+        allLights.forEach(light => {
+            if (Math.random() > 0.8) {
+                light.style.opacity = (0.2 + Math.random() * 0.3).toString();
+            }
+        });
+    }, 200);
     
-    function updateHaunted(timestamp) {
-        if (timestamp - lastUpdate > interval) {
-            lastUpdate = timestamp;
-            
-            // Batch update lights that need subtle flicker
-            const updates = [];
-            
-            allLights.forEach(light => {
-                if (Math.random() > 0.8) {
-                    updates.push({
-                        light,
-                        opacity: (0.2 + Math.random() * 0.3).toString()
-                    });
-                }
-            });
-            
-            // Apply updates
-            updates.forEach(update => {
-                update.light.style.opacity = update.opacity;
-            });
-        }
-        
-        // Continue the animation loop if this mode is still active
-        if (state.lights.combined.mode === 'haunted' && state.modes.combined) {
-            requestAnimationFrame(updateHaunted);
-        }
-    }
-    
-    requestAnimationFrame(updateHaunted);
+    combinedLightIntervals.push(interval);
 }
 
-// Toggle Christmas mode
-function toggleChristmasMode() {
-    // Disable other modes if they're enabled
-    if (state.modes.halloween) {
-        toggleHalloweenMode();
-    }
-    if (state.modes.combined) {
-        toggleCombinedMode();
-    }
-
-    state.modes.christmas = !state.modes.christmas;
-
-    if (state.modes.christmas) {
-        // Enable Christmas mode
-        domCache.christmas.toggle.textContent = 'Disable Christmas Mode';
-        domCache.christmas.toggle.style.backgroundColor = '#00aa00';
-
-        // Create and show Christmas elements
-        createFallingElements('snowflake', ['❄', '❅', '❆', '*']);
-        createChristmasLights();
-
-        // Show elements
-        domCache.christmas.lightModeControl.style.display = 'block';
-        domCache.christmas.miniTree.style.display = 'block';
-        domCache.christmas.hat.style.display = 'block';
-        domCache.christmas.lightsContainer.style.display = 'block';
-        document.querySelectorAll('.snowflake').forEach(flake => {
-            flake.style.display = 'block';
-        });
-
-    } else {
-        // Disable Christmas mode
-        domCache.christmas.toggle.textContent = 'Enable Christmas Mode';
-        domCache.christmas.toggle.style.backgroundColor = '#ff0000';
-
-        // Hide Christmas elements
-        domCache.christmas.lightModeControl.style.display = 'none';
-        domCache.christmas.miniTree.style.display = 'none';
-        domCache.christmas.hat.style.display = 'none';
-        domCache.christmas.lightsContainer.style.display = 'none';
-        domCache.christmas.lightCord.style.display = 'none';
-
-        // Clear light animations
-        state.lights.christmas.intervals = clearAllIntervals(state.lights.christmas.intervals);
-
-        // Hide snowflakes
-        document.querySelectorAll('.snowflake').forEach(flake => {
-            flake.style.display = 'none';
-        });
-    }
-}
-
-// Toggle Halloween mode
-function toggleHalloweenMode() {
-    // Disable other modes if they're enabled
-    if (state.modes.christmas) {
-        toggleChristmasMode();
-    }
-    if (state.modes.combined) {
-        toggleCombinedMode();
-    }
-
-    state.modes.halloween = !state.modes.halloween;
-
-    if (state.modes.halloween) {
-        // Enable Halloween mode
-        domCache.halloween.toggle.textContent = 'Disable Halloween Mode';
-        domCache.halloween.toggle.style.backgroundColor = '#6600cc';
-
-        // Create and show Halloween elements
-        createFallingElements('halloween-element', ['🦇', '🍂', '🕸️', '🕷️', '👻', '💀']);
-        createHalloweenLights();
-
-        // Show elements
-        domCache.halloween.lightModeControl.style.display = 'block';
-        domCache.halloween.pumpkinPatch.style.display = 'block';
-        domCache.halloween.witchHat.style.display = 'block';
-        domCache.halloween.lightsContainer.style.display = 'block';
-        domCache.halloween.spiderWeb.style.display = 'block';
-
-        // Show ghosts
-        domCache.halloween.ghosts.forEach(ghost => {
-            ghost.style.display = 'block';
-        });
-
-        // Show falling elements
-        document.querySelectorAll('.halloween-element').forEach(element => {
-            element.style.display = 'block';
-        });
-
-        // Show fog effect
-        domCache.halloween.fogEffect.style.opacity = '1';
-        
-        // Start lightning
-        triggerLightning();
-    } else {
-        // Disable Halloween mode
-        domCache.halloween.toggle.textContent = 'Enable Halloween Mode';
-        domCache.halloween.toggle.style.backgroundColor = '#ff6600';
-
-        // Hide Halloween elements
-        domCache.halloween.lightModeControl.style.display = 'none';
-        domCache.halloween.pumpkinPatch.style.display = 'none';
-        domCache.halloween.witchHat.style.display = 'none';
-        domCache.halloween.lightsContainer.style.display = 'none';
-        domCache.halloween.spiderWeb.style.display = 'none';
-        domCache.halloween.lightCord.style.display = 'none';
-
-        // Clear light animations
-        state.lights.halloween.intervals = clearAllIntervals(state.lights.halloween.intervals);
-
-        // Hide ghosts
-        domCache.halloween.ghosts.forEach(ghost => {
-            ghost.style.display = 'none';
-        });
-
-        // Hide falling elements
-        document.querySelectorAll('.halloween-element').forEach(element => {
-            element.style.display = 'none';
-        });
-
-        // Hide fog effect
-        domCache.halloween.fogEffect.style.opacity = '0';
-    }
-}
-
-// Toggle combined mode
-function toggleCombinedMode() {
-    // Disable other modes if they're enabled
-    if (state.modes.christmas) {
-        toggleChristmasMode();
-    }
-    if (state.modes.halloween) {
-        toggleHalloweenMode();
-    }
-    
-    state.modes.combined = !state.modes.combined;
-    
-    if (state.modes.combined) {
-        // Enable combined mode
-        domCache.combined.toggle.textContent = 'Disable Combined Mode';
-        domCache.combined.toggle.style.background = 'linear-gradient(to right, #00aa00, #6600cc)';
-        
-        // Create and show combined elements
-        createDualEffects();
-        
-        // Show elements
-        domCache.combined.lightModeControl.style.display = 'block';
-        domCache.combined.dualHat.style.display = 'block';
-        domCache.combined.corner.style.display = 'block';
-        
-        // Show both Christmas and Halloween elements
-        document.querySelectorAll('.snowflake').forEach(flake => {
-            flake.style.display = 'block';
-        });
-        document.querySelectorAll('.halloween-element').forEach(element => {
-            element.style.display = 'block';
-        });
-        
-        // Show lights from both themes
-        domCache.christmas.lightsContainer.style.display = 'block';
-        domCache.christmas.lightCord.style.display = 'block';
-        domCache.halloween.lightsContainer.style.display = 'block';
-        domCache.halloween.lightCord.style.display = 'block';
-        
-        // Enable fog with reduced opacity
-        domCache.halloween.fogEffect.style.opacity = '0.5';
-        
-        // Show ghosts
-        domCache.halloween.ghosts.forEach(ghost => {
-            ghost.style.display = 'block';
-        });
-        
-        // Show spider web
-        domCache.halloween.spiderWeb.style.display = 'block';
-        
-        // Start lightning
-        triggerLightning();
-    } else {
-        // Disable combined mode
-        domCache.combined.toggle.textContent = 'Enable Combined Mode';
-        domCache.combined.toggle.style.background = 'linear-gradient(to right, #ff0000, #ff6600)';
-        
-        // Hide combined elements
-        domCache.combined.lightModeControl.style.display = 'none';
-        domCache.combined.dualHat.style.display = 'none';
-        domCache.combined.corner.style.display = 'none';
-        
-        // Hide Christmas elements
-        domCache.christmas.lightsContainer.style.display = 'none';
-        domCache.christmas.lightCord.style.display = 'none';
-        document.querySelectorAll('.snowflake').forEach(flake => {
-            flake.style.display = 'none';
-        });
-        
-        // Hide Halloween elements
-        domCache.halloween.lightsContainer.style.display = 'none';
-        domCache.halloween.lightCord.style.display = 'none';
-        document.querySelectorAll('.halloween-element').forEach(element => {
-            element.style.display = 'none';
-        });
-        domCache.halloween.ghosts.forEach(ghost => {
-            ghost.style.display = 'none';
-        });
-        domCache.halloween.spiderWeb.style.display = 'none';
-        domCache.halloween.fogEffect.style.opacity = '0';
-        
-        // Clear light animations
-        state.lights.combined.intervals = clearAllIntervals(state.lights.combined.intervals);
-    }
-}
-
-// Event listeners for mode controls with performance-optimized event handling
-document.getElementById('light-mode-slider').addEventListener('input', function() {
+// Light mode slider
+document.getElementById('light-mode-slider').addEventListener('input', function () {
+    // Get mode based on slider value
     const modeIndex = parseInt(this.value);
-    const selectedMode = state.lights.christmas.modes[modeIndex];
+    const selectedMode = lightModes[modeIndex];
+
+    // Apply selected mode
     setLightMode(selectedMode);
 });
 
-document.getElementById('halloween-light-slider').addEventListener('input', function() {
+// Halloween light mode slider
+document.getElementById('halloween-light-slider').addEventListener('input', function () {
+    // Get mode based on slider value
     const modeIndex = parseInt(this.value);
-    const selectedMode = state.lights.halloween.modes[modeIndex];
+    const selectedMode = halloweenLightModes[modeIndex];
+
+    // Apply selected mode
     setHalloweenLightMode(selectedMode);
 });
 
+// Combined light mode slider
 document.getElementById('combined-light-slider').addEventListener('input', function() {
+    // Get mode based on slider value
     const modeIndex = parseInt(this.value);
-    const selectedMode = state.lights.combined.modes[modeIndex];
+    const selectedMode = combinedLightModes[modeIndex];
+    
+    // Apply selected mode
     setCombinedLightMode(selectedMode);
 });
 
-// Button click handlers
+// Add event listener to Christmas toggle button
 document.getElementById('christmas-toggle').addEventListener('click', toggleChristmasMode);
+
+// Add event listener to Halloween toggle button
 document.getElementById('halloween-toggle').addEventListener('click', toggleHalloweenMode);
+
+// Add event listener to combined toggle button
 document.getElementById('combined-toggle').addEventListener('click', toggleCombinedMode);
 
-// Performance optimization: Throttle resize and visibility change events
-let resizeTimer = null;
-window.addEventListener('resize', function() {
-    if (resizeTimer) clearTimeout(resizeTimer);
-    
-    resizeTimer = setTimeout(() => {
-        // Clear and restart global timer
-        if (state.symbols.timer !== null) {
-            clearTimeout(state.symbols.timer);
-            state.symbols.timer = null;
-        }
-        
-        // Restart with requestAnimationFrame
-        startGlobalTimer();
-    }, 200); // Throttle to run max every 200ms
+// Initialize
+window.addEventListener('load', function () {
+    spawnSymbols();
 });
 
-// Visibility change handling
+// Reset and restart the global timer when visibility changes
 document.addEventListener('visibilitychange', function() {
     if (document.visibilityState === 'visible') {
-        // Restart animations when tab becomes visible
-        if (state.symbols.timer !== null) {
-            clearTimeout(state.symbols.timer);
-            state.symbols.timer = null;
+        // Clear the existing timer
+        if (globalSymbolTimer !== null) {
+            clearInterval(globalSymbolTimer);
+            globalSymbolTimer = null;
         }
         
-        // Only start if we have symbols
-        if (state.symbols.data.length > 0) {
-            startGlobalTimer();
-        }
-        
-        // Restart glow toggle
-        if (state.glow.interval) {
-            clearTimeout(state.glow.interval);
-        }
-        autoToggleGlow();
+        // Restart the timer to sync all symbols
+        startGlobalTimer();
     }
 });
 
-// Initialize
-window.addEventListener('load', function() {
-    // Start spawning symbols
-    spawnSymbols();
-    
-    // Hide YouTube players initially
-    hideYouTubePlayers();
+// Create a window resize handler to resync the timer
+window.addEventListener('resize', function() {
+    // Clear the existing timer with a small delay to allow resize to complete
+    setTimeout(() => {
+        if (globalSymbolTimer !== null) {
+            clearInterval(globalSymbolTimer);
+            globalSymbolTimer = null;
+        }
+        
+        // Restart the timer to sync all symbols
+        startGlobalTimer();
+    }, 100);
 });
