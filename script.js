@@ -479,20 +479,17 @@ function createSymbol(type) {
                             { x1: '18', y1: '18', x2: '12', y2: '12' }
                         ];
                         break;
-             case 'circle':
+   case 'circle':
     colorSet = getRandomColors(3); // Get 3 colors
-    
-    // Divide the circle into three equal arcs of 120 degrees each
-    // Using SVG path arc notation to create three equal segments
     parts = [
-        // First segment: 0 to 120 degrees
-        { d: 'M12 4 A8 8 0 0 1 19.32 8' },  // Top to upper right (120 degrees)
+        // First arc - top right third (0 to 120 degrees)
+        { d: 'M12 4 A8 8 0 0 1 16.93 18' },
         
-        // Second segment: 120 to 240 degrees
-        { d: 'M19.32 8 A8 8 0 0 1 8 19.32' },  // Upper right to lower left (120 degrees)
+        // Second arc - bottom third (120 to 240 degrees)
+        { d: 'M16.93 18 A8 8 0 0 1 7.07 18' },
         
-        // Third segment: 240 to 360 degrees
-        { d: 'M8 19.32 A8 8 0 0 1 12 4' }  // Lower left back to top (120 degrees)
+        // Third arc - top left third (240 to 360/0 degrees)
+        { d: 'M7.07 18 A8 8 0 0 1 12 4' }
     ];
     break;
                         break;
@@ -603,20 +600,17 @@ function createSymbol(type) {
                     { x1: '18', y1: '18', x2: '12', y2: '12' }
                 ];
                 break;
-       case 'circle':
+case 'circle':
     colorSet = getRandomColors(3); // Get 3 colors
-    
-    // Divide the circle into three equal arcs of 120 degrees each
-    // Using SVG path arc notation to create three equal segments
     parts = [
-        // First segment: 0 to 120 degrees
-        { d: 'M12 4 A8 8 0 0 1 19.32 8' },  // Top to upper right (120 degrees)
+        // First arc - top right third (0 to 120 degrees)
+        { d: 'M12 4 A8 8 0 0 1 16.93 18' },
         
-        // Second segment: 120 to 240 degrees
-        { d: 'M19.32 8 A8 8 0 0 1 8 19.32' },  // Upper right to lower left (120 degrees)
+        // Second arc - bottom third (120 to 240 degrees)
+        { d: 'M16.93 18 A8 8 0 0 1 7.07 18' },
         
-        // Third segment: 240 to 360 degrees
-        { d: 'M8 19.32 A8 8 0 0 1 12 4' }  // Lower left back to top (120 degrees)
+        // Third arc - top left third (240 to 360/0 degrees)
+        { d: 'M7.07 18 A8 8 0 0 1 12 4' }
     ];
     break;
                 break;
