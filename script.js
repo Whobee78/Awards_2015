@@ -481,18 +481,15 @@ function createSymbol(type) {
                         break;
 case 'circle':
     colorSet = getRandomColors(3); // Get 3 colors
-    
-    // These calculations create three exactly equal arcs
-    // Using the SVG arc command with the large-arc-flag set appropriately
     parts = [
-        // First arc - 0 to 120 degrees
-        { d: 'M12 4 A8 8 0 0 1 4 12' },
+        // First arc - top right third (0 to 120 degrees)
+        { d: 'M12 4 A8 8 0 0 1 16.93 18' },
         
-        // Second arc - 120 to 240 degrees
-        { d: 'M4 12 A8 8 0 0 1 20 12' },
+        // Second arc - bottom third (120 to 240 degrees)
+        { d: 'M16.93 18 A8 8 0 0 1 7.07 18' },
         
-        // Third arc - 240 to 360 degrees
-        { d: 'M20 12 A8 8 0 0 1 12 4' }
+        // Third arc - top left third (240 to 360/0 degrees)
+        { d: 'M7.07 18 A8 8 0 0 1 12 4' }
     ];
     break;
                     case 'triangle':
@@ -604,18 +601,15 @@ case 'circle':
                 break;
 case 'circle':
     colorSet = getRandomColors(3); // Get 3 colors
-    
-    // These calculations create three exactly equal arcs
-    // Using the SVG arc command with the large-arc-flag set appropriately
     parts = [
-        // First arc - 0 to 120 degrees
-        { d: 'M12 4 A8 8 0 0 1 4 12' },
+        // First arc - top right third (0 to 120 degrees)
+        { d: 'M12 4 A8 8 0 0 1 16.93 18' },
         
-        // Second arc - 120 to 240 degrees
-        { d: 'M4 12 A8 8 0 0 1 20 12' },
+        // Second arc - bottom third (120 to 240 degrees)
+        { d: 'M16.93 18 A8 8 0 0 1 7.07 18' },
         
-        // Third arc - 240 to 360 degrees
-        { d: 'M20 12 A8 8 0 0 1 12 4' }
+        // Third arc - top left third (240 to 360/0 degrees)
+        { d: 'M7.07 18 A8 8 0 0 1 12 4' }
     ];
     break;
             case 'triangle':
