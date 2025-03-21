@@ -480,10 +480,13 @@ function createSymbol(type) {
                         ];
                         break;
                     case 'circle':
-                        parts = [
-                            { d: 'M12 4 A8 8 0 1 1 12 20' },
-                            { d: 'M12 20 A8 8 0 1 1 12 4' }
-                        ];
+    colorSet = getRandomColors(3); // Get 3 colors instead of 2
+    parts = [
+        { d: 'M12 4 A8 8 0 0 1 20 12' },  // First third (top right arc)
+        { d: 'M20 12 A8 8 0 0 1 12 20' },  // Second third (bottom right arc)
+        { d: 'M12 20 A8 8 0 0 1 4 12 A8 8 0 0 1 12 4' }  // Final third (left side arc)
+    ];
+    break;
                         break;
                     case 'triangle':
                         parts = [
