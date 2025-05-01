@@ -1026,3 +1026,12 @@ html {
     z-index: 5;
     display: none;
 }
+
+/* --- Start of new style for hiding interface --- */
+.hidden-interface {
+    display: none !important; /* Use !important to ensure it overrides other display styles */
+    visibility: hidden;      /* Add visibility for good measure */
+    opacity: 0;              /* Make it fully transparent */
+    pointer-events: none;    /* Prevent interactions when hidden */
+}
+/* --- End of new style for hiding interface --- */
